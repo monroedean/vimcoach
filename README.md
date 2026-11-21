@@ -4,6 +4,8 @@ A Vim motion coach for Neovim (and VS Code via `vscode-neovim`).
 
 `vimcoach` reads your actual buffer, visual selections, cursor jumps, and before/after edits to tell you the faster native Vim way to do what you just did.
 
+![vimcoach demo](assets/demo.gif)
+
 ## What it catches
 
 - **Visual mode & text objects** — stepping through quotes, brackets, HTML tags, words, or paragraphs (`vllllld` → `di"`, `vwwc` → `ci(`, `Vjjjd` → `di{`, `vi"d` → `di"`).
