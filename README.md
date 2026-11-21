@@ -19,13 +19,12 @@ It skips niche Vim-golf tricks (won't nag `jjj` or suggest `4fe` / `12l`), ignor
 With `lazy.nvim`:
 
 ```lua
-return {
-  "your-username/vimcoach",
-  vscode = true,
-}
+return { "monroedean/vimcoach" }
 ```
 
-That's it — it works in both Neovim and VS Code (`vscode-neovim`) with zero extra setup. In VS Code, hints show up as a fading inline badge at the end of the line (hover for details) plus a brief status bar message. An optional companion extension lives in `vscode-extension/` if you also want a sidebar dashboard.
+That's it — works in Neovim and VS Code (`vscode-neovim`) out of the box.
+
+In VS Code, hints show up as a fading inline badge at the end of the line (hover for details) plus a brief status bar message. An optional companion extension lives in `vscode-extension/` if you also want a sidebar dashboard.
 
 ## Commands
 
