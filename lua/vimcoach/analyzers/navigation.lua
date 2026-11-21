@@ -146,9 +146,6 @@ function M.analyze(ctx)
     }
   end
 
-  -- =========================================================================
-  -- 1. REPEATED IDENTICAL f/F/t/T -> `;`
-  -- =========================================================================
   local rep_find = detect_repeated_find(keys)
   if rep_find then
     local suggested = rep_find.cmd .. rep_find.ch .. string.rep(";", rep_find.repeats - 1)
@@ -160,9 +157,6 @@ function M.analyze(ctx)
     )
   end
 
-  -- =========================================================================
-  -- 2. MATCHING BRACKET JUMP -> `%` (works both same-line and multi-line!)
-  -- =========================================================================
   if key_count >= 3 then
     local mr, mc = buf.find_matching_pair(lines, s_row, s_col, base_row)
     if mr == e_row and mc == e_col then
@@ -175,9 +169,6 @@ function M.analyze(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 3. SAME-LINE HORIZONTAL OPTIMIZATIONS
-  -- =========================================================================
   if same_line then
     local line = lines[s_row - base_row + 1] or ""
     local first_nb = buf.first_non_blank(line)
@@ -248,9 +239,6 @@ function M.analyze(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 4. MULTI-LINE VERTICAL OPTIMIZATIONS
-  -- =========================================================================
   if not same_line and dy >= 3 then
     -- 4a. Top / Bottom of file (`gg` / `G`)
     if e_row == 1 and dy >= 5 and jk_count >= 5 then
@@ -324,9 +312,6 @@ function M.analyze(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 5. ARROW KEY USAGE IN NORMAL MODE (if no stronger specific motion already fired)
-  -- =========================================================================
   if arrow_count >= 2 then
     -- If we already found an awesome specific Vim motion (like `$`, `w`, `f(`, `6j`),
     -- enrich its reason so the user learns BOTH "no arrows" AND the exact optimal motion!

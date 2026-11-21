@@ -6,8 +6,6 @@ local vscode_ui = require("vimcoach.ui.vscode")
 
 local M = {}
 
----Show a coaching hint using the active frontend (VS Code, Neovim Float, vim.notify, or echo).
----@param hint table
 function M.show_hint(hint)
   if vscode_ui.is_vscode() then
     vscode_ui.show_hint(hint)
@@ -43,7 +41,6 @@ function M.show_hint(hint)
   end
 end
 
----Open the Mastery Dashboard (VS Code Webview if in VS Code with companion, else Neovim floating dashboard).
 function M.open_dashboard()
   if vscode_ui.is_vscode() then
     vscode_ui.open_dashboard()
@@ -52,12 +49,10 @@ function M.open_dashboard()
   dashboard.open()
 end
 
----Close any active floating toast.
 function M.close_toast()
   float_ui.close()
 end
 
----Sync stats to VS Code companion extension if connected.
 function M.sync()
   if vscode_ui.is_vscode() then
     vscode_ui.sync_stats()

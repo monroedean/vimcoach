@@ -27,9 +27,6 @@ local function now_ms()
   return math.floor(uv.hrtime() / 1e6)
 end
 
----Determine whether blocking should apply right now for `key`.
----@param key string
----@return boolean
 local function should_block_key(key)
   local mode = config.options.mode
   if mode == "coach" or not config.options.enabled then
@@ -38,12 +35,8 @@ local function should_block_key(key)
   if config.is_buffer_disabled(0) then
     return false
   end
-  -- Never block counted motions like `5j` or `3w`!
-  if vim.v.count > 0 then
-    return false
-  end
-  -- Never block during macro playback
-  if vim.fn.reg_executing() ~= "" then
+  -- Never block counted motions (5j, 3w) or macro playback
+  if vim.v.count > 0 or vim.fn.reg_executing() ~= "" then
     return false
   end
 
@@ -57,9 +50,6 @@ local function should_block_key(key)
   return true
 end
 
----Generate a buffer-aware suggestion when blocking a mashed key.
----@param key string
----@return table
 local function build_strict_hint(key)
   local rule_id = KEY_TO_RULE[key] or "nav_vertical_count"
   local suggested = "w / f<ch> / $"
@@ -98,9 +88,6 @@ local function build_strict_hint(key)
   }
 end
 
----Handle a restricted key press inside an expr mapping.
----@param key string
----@return string
 local function handle_key(key)
   if not should_block_key(key) then
     repeat_count = 0
@@ -135,7 +122,6 @@ local function handle_key(key)
   return key
 end
 
----Install strict keymaps if mode is "strict" or "adaptive".
 function M.enable()
   if active then
     return
@@ -167,7 +153,6 @@ function M.enable()
   end
 end
 
----Remove strict keymaps and restore any previous user mappings.
 function M.disable()
   if not active then
     return
@@ -190,7 +175,6 @@ function M.disable()
   saved_maps = {}
 end
 
----Sync strict mode hooks with current `config.options.mode`.
 function M.sync()
   if config.options.enabled and (config.options.mode == "strict" or config.options.mode == "adaptive") then
     M.enable()

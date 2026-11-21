@@ -1,147 +1,71 @@
-# VimCoach (`vimcoach.nvim`)
+# vimcoach
 
-A **buffer-aware, history-aware Vim motion & editing coach** for **Neovim** and **VS Code (`vscode-neovim`)** — built to go far beyond regex-only keystroke blockers like `hardtime.nvim`.
+A Vim motion coach for Neovim (and VS Code via `vscode-neovim`).
 
-Instead of blindly counting `jjjj` or matching static key strings, **VimCoach inspects your actual buffer text, Visual selection bounds, navigation trajectories, and before/after edit diffs** to recommend the fastest *practical* native Vim idiom every time you take a slower path.
+Unlike `hardtime.nvim`, which mainly blocks key spam and matches short regexes, `vimcoach` reads your actual buffer, visual selections, cursor jumps, and before/after edits to tell you the faster native Vim way to do what you just did.
 
----
+## What it catches
 
-## Why VimCoach Beats `hardtime.nvim`
+- **Visual mode & text objects** — stepping through quotes, brackets, HTML tags, words, or paragraphs (`vllllld` → `di"`, `vwwc` → `ci(`, `Vjjjd` → `di{`, `vi"d` → `di"`).
+- **Navigation** — walking to line start/end (`0`, `^`, `$`), matching brackets (`%`), characters (`f`/`t`/`;`), paragraphs (`}`/`{`), file bounds (`gg`/`G`), counted jumps (`6j`), half-page scrolls (`<C-d>`/`<C-u>`), and jump-back (`<C-o>`).
+- **Editing combos** — `d$` → `D`, `dw`+`i` → `cw`, `dd`+`O` → `cc`, `^i` → `I`, `$a` → `A`, `A<CR>` → `o`, case flips (`xiA<Esc>` → `~`), incrementing numbers (`ciw43` on `42` → `<C-a>`), manual indents (`>>`/`<<`), and line joins (`J`).
+- **Repetition & search** — repeating an edit manually → `.`, searching the word under cursor with `/` → `*`/`#`, and repeating search+change → `cgn` + `.`.
+- **Insert mode** — mashing `<BS>` → `<C-w>`/`<C-u>`, arrow keys in insert mode.
 
-| Capability | `hardtime.nvim` | **VimCoach** |
-| --- | --- | --- |
-| Visual selection → exact text object (`vllllld` inside `"..."` → `di"`, `vwwc` inside `(...)` → `ci(`, `Vjjjd` inside `{...}` → `di{`, HTML tags → `cit`, paragraphs → `dip`, words → `ciw`) | No | **Yes (100% buffer-aware)** |
-| Unnecessary Visual mode (`vi"d` → `di"`, `vwd` → `dw`, `Vd` → `dd`, `v$d` → `D`) | Partial | **Yes + explains `.` dot-repeatability** |
-| Start-to-end trajectory optimization (`llllll` → `f(` / `w` / `$`, `hhhh` → `^` / `0`, matching brackets → `%`, blank lines → `}` / `{`, `gg`/`G`, `<C-d>`/`<C-u>`, `<C-o>`, `;`) | Key counting only | **Yes (computes optimal motion for exact buffer geometry)** |
-| Compound editing & buffer-diff detection (`dw`+`i` → `cw`, `dd`+`O` → `cc`, `^i` → `I`, `$a` → `A`, `A<CR>` → `o`, `xiA<Esc>` → `~`, `ciw43<Esc>` on `42` → `<C-a>`, `I  <Esc>` → `>>`, `A<Del>` → `J`) | Very limited | **Yes (pre/post diff semantic engine)** |
-| Repetition & search coaching (manual repeated edit → `.`, `/<word_under_cursor>` → `*`, search + `n` + repeated change → `*` + `cgn` + `.`) | No | **Yes** |
-| Insert-mode habit coaching (repeated `<BS>` → `<C-w>` / `<C-u>`, arrow keys in Insert mode) | No | **Yes** |
-| Practicality / Anti-Vim-Golf filter (never nags `jjj`, never suggests `4fe`, `12l`, or `8w`, ignores slow reading pauses) | Basic | **Built-in** |
-| Positive reinforcement + persistent Mastery Dashboard (`:VimCoachDashboard`) | No | **Yes (tracks both good & missed motions, adaptive cooldowns)** |
-| First-class VS Code (`vscode-neovim`) integration + optional companion VS Code UI extension | No | **Yes** |
+It skips niche Vim-golf tricks (won't nag `jjj` or suggest `4fe` / `12l`), ignores slow reading pauses, and tracks your mastery over time so it backs off on habits you've already learned.
 
----
+## Install
 
-## Installation
-
-### 1. Neovim (`lazy.nvim`)
+With `lazy.nvim`:
 
 ```lua
 return {
-  "your-username/vimcoach.nvim", -- or dir = "~/projects/teach-me-vim"
-  name = "vimcoach.nvim",
-  main = "vimcoach",
-  vscode = true, -- also loads inside vscode-neovim
-  lazy = false,
-  opts = {
-    mode = "coach", -- "coach" (default) | "strict" | "adaptive"
-  },
+  "your-username/vimcoach",
+  vscode = true,
 }
 ```
 
-### 2. VS Code with `vscode-neovim`
-
-#### Works Out of the Box (Zero Extra VS Code Extensions)
-Because `vscode-neovim` runs your real Neovim config, adding `vscode = true` and `lazy = false` above is all you need. Out of the box, `vimcoach.nvim` detects `vim.g.vscode` and renders:
-- A sleek **inline pill badge** (`⚡ vlllld → di" (-3 keys)`) at the end of your active line (with full explanation on hover, auto-fading after 4.5s)
-- A quiet auto-clearing **Status Bar flash** (set `vscode = { style = "inline" }` for pure inline only)
-
-#### Optional: Install the Companion VS Code Extension
-Installing `vscode-extension/` additionally adds a persistent **Activity Bar Mastery Dashboard** sidebar inside VS Code:
-
-```bash
-cd vscode-extension
-npm install
-npm run compile
-npx @vscode/vsce package
-code --install-extension vimcoach-vscode-1.0.0.vsix
-```
-
-Once installed, `vimcoach.nvim` automatically detects it and streams live hints & mastery stats to the VS Code sidebar and status bar.
-
----
+That's it — it works in both Neovim and VS Code (`vscode-neovim`) with zero extra setup. In VS Code, hints show up as a fading inline badge at the end of the line (hover for details) plus a brief status bar message. An optional companion extension lives in `vscode-extension/` if you also want a sidebar dashboard.
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `:VimCoach` / `:VimCoachDashboard` | Open the interactive Mastery Dashboard (`1`/`2`/`3` tabs) |
-| `:VimCoachToggle` | Pause or resume VimCoach |
-| `:VimCoachStrict` | Toggle Strict blocking mode on/off |
-| `:VimCoach coach\|strict\|adaptive` | Switch between Coach, Strict, and Adaptive modes |
-| `:VimCoach status` | Show current fluency score and session counters |
-| `:VimCoachReset` | Reset all persisted mastery statistics |
+- `:VimCoach` / `:VimCoachDashboard` — open the mastery dashboard
+- `:VimCoachToggle` — pause or resume
+- `:VimCoachStrict` — toggle strict blocking mode
+- `:VimCoach coach|strict|adaptive` — switch mode
+- `:VimCoach status` — quick fluency summary
+- `:VimCoach test` — fire a sample hint
+- `:VimCoachReset` — wipe saved stats
 
-### Statusline Integration (`lualine.nvim`)
+Statusline helper (e.g. `lualine.nvim`):
 
 ```lua
-sections = {
-  lualine_x = {
-    { function() return require("vimcoach").statusline() end },
-  },
-}
+function() return require("vimcoach").statusline() end
 ```
 
----
+## Config
 
-## Configuration Defaults
+Only override what you need — full defaults live in `lua/vimcoach/config.lua`:
 
 ```lua
 require("vimcoach").setup({
-  enabled = true,
-  mode = "coach",              -- "coach" | "strict" | "adaptive"
-  adaptive_strict_misses = 8,  -- misses before blocking kicks in (adaptive mode)
-
-  cooldown_ms = 2200,          -- min time between any two hints
-  rule_cooldown_ms = 14000,    -- min time before repeating the same rule
-  mastery_cooldown_multiplier = 3.0, -- mastered skills (>85%) nag 3x less often
-
-  assume_nvim_Y = true,        -- Neovim maps Y -> y$ by default
-  practical_only = true,       -- filter out obscure/golfy suggestions
-  track_stats = true,          -- persist mastery stats in stdpath("data")/vimcoach/stats.json
-
-  disabled_rules = {
-    -- e.g. nav_vertical_count = true,
-  },
-
-  thresholds = {
-    min_keys_saved = 1,
-    vertical_count_min = 4,    -- jj/jjj are never nagged
-    vertical_page_min = 15,
-    horizontal_step_min = 4,
-    word_step_min = 5,
-    repeat_x_min = 3,
-    repeat_line_op_min = 4,
-    insert_bs_min = 4,
-    insert_arrow_min = 3,
-    episode_timeout_ms = 1100, -- slow reading pauses won't trigger hints
-  },
-
+  mode = "coach",
+  cooldown_ms = 2200,
+  rule_cooldown_ms = 14000,
+  practical_only = true,
+  disabled_rules = {}, -- e.g. { nav_vertical_count = true }
   ui = {
-    style = "float",           -- "float" | "notify" | "echo"
-    position = "top_right",    -- "top_right" | "bottom_right" | "cursor"
+    style = "float",        -- "float" | "notify" | "echo"
+    position = "top_right", -- "top_right" | "bottom_right" | "cursor"
     duration_ms = 4500,
-    max_width = 58,
-    border = "rounded",
-    show_keys_saved = true,
-    show_reason = true,
   },
-
   vscode = {
-    enabled = true,
-    style = "inline_and_status", -- "inline" | "inline_and_status" | "status_bar" | "toast"
-    use_companion_extension = true,
-    fallback_notify = false,
-    notify_level = "info",
+    style = "inline_and_status",
   },
 })
 ```
 
----
-
-## Running the Test Suite
-
-Run the full automated analyzer & buffer-geometry test suite with headless Neovim:
+## Tests
 
 ```bash
 nvim --headless -u tests/minimal_init.lua -l tests/test_runner.lua

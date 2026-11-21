@@ -41,9 +41,6 @@ local ARROW_KEYS = {
   ["<Left>"] = true, ["<Right>"] = true, ["<Up>"] = true, ["<Down>"] = true,
 }
 
--- ===========================================================================
--- Runtime state
--- ===========================================================================
 local state = {
   -- Pending multi-key modifiers in Normal mode
   awaiting_char_for = nil, -- "f"|"F"|"t"|"T"|"r"|"m"|"'"|"`"|'"'
@@ -278,9 +275,6 @@ local function begin_insert_session(entry_key, prev_delete, prev_nav)
   end)
 end
 
--- ===========================================================================
--- NORMAL MODE HANDLER
--- ===========================================================================
 local function handle_normal_key(k, t)
   local bufnr = vim.api.nvim_get_current_buf()
   local row, col = get_cursor_1indexed()
@@ -642,9 +636,6 @@ local function handle_normal_key(k, t)
   state.last_normal_ts = t
 end
 
--- ===========================================================================
--- VISUAL MODE HANDLER
--- ===========================================================================
 local function handle_visual_key(k, mode)
   if not state.visual then
     local row, col = get_cursor_1indexed()
@@ -745,9 +736,6 @@ local function handle_visual_key(k, mode)
   vs.keys[#vs.keys + 1] = k
 end
 
--- ===========================================================================
--- INSERT MODE HANDLER
--- ===========================================================================
 local function handle_insert_key(k)
   if not state.insert then
     return
@@ -809,9 +797,6 @@ local function handle_insert_key(k)
   end
 end
 
--- ===========================================================================
--- INSERT LEAVE & CMDLINE AUTOCMD HANDLERS
--- ===========================================================================
 local function on_insert_leave()
   local ins = state.insert
   state.insert = nil
@@ -889,9 +874,6 @@ local function on_insert_leave()
   end
 end
 
--- ===========================================================================
--- MASTER vim.on_key CALLBACK
--- ===========================================================================
 local function on_key_cb(key, typed)
   if not config.options.enabled then
     return

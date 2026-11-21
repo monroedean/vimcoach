@@ -19,9 +19,6 @@ local function make_candidate(rule_id, actual, suggested, keys_saved, priority, 
   }
 end
 
----Analyze a burst of consecutive `<BS>` presses in Insert mode.
----@param ctx table { count: integer, cleared_to_sol: boolean }
----@return table[] candidates
 function M.analyze_backspace_run(ctx)
   local min_bs = config.options.thresholds.insert_bs_min or 4
   if not ctx or (ctx.count or 0) < min_bs then
@@ -31,7 +28,6 @@ function M.analyze_backspace_run(ctx)
   local count = ctx.count
   local actual = string.format("<BS>×%d", count)
 
-  -- If they deleted a huge stretch all the way back to line start -> `<C-u>`
   if ctx.cleared_to_sol and count >= 10 then
     local c = make_candidate(
       "insert_ctrl_u",
@@ -55,9 +51,6 @@ function M.analyze_backspace_run(ctx)
   return c and { c } or {}
 end
 
----Analyze consecutive arrow key presses inside Insert mode.
----@param ctx table { keys: string[] }
----@return table[] candidates
 function M.analyze_insert_arrows(ctx)
   local min_arrows = config.options.thresholds.insert_arrow_min or 3
   if not ctx or not ctx.keys or #ctx.keys < min_arrows then

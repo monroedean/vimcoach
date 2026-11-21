@@ -10,7 +10,6 @@ local toast_buf = nil
 local dismiss_timer = nil
 local ns_id = vim.api.nvim_create_namespace("vimcoach_float_ui")
 
----Define highlight groups linked cleanly to standard Neovim groups (theme-friendly).
 function M.setup_highlights()
   local hls = {
     VimCoachBorder = { link = "FloatBorder", default = true },
@@ -30,10 +29,6 @@ function M.setup_highlights()
   end
 end
 
----Wrap a string cleanly into lines of at most `max_width` display chars.
----@param text string
----@param max_width integer
----@return string[]
 local function wrap_text(text, max_width)
   if not text or text == "" then
     return {}
@@ -56,7 +51,6 @@ local function wrap_text(text, max_width)
   return lines
 end
 
----Close the active floating toast immediately.
 function M.close()
   if dismiss_timer then
     pcall(function()
@@ -75,8 +69,6 @@ function M.close()
   toast_buf = nil
 end
 
----Display a non-intrusive floating coaching toast in Neovim.
----@param hint table { rule_id, actual, suggested, keys_saved, reason, is_strict_block }
 function M.show(hint)
   M.setup_highlights()
   M.close()
@@ -109,7 +101,6 @@ function M.show(hint)
     end
   end
 
-  -- Compute window width from content
   local width = 26
   for _, l in ipairs(lines) do
     width = math.max(width, vim.fn.strdisplaywidth(l) + 1)
@@ -120,7 +111,6 @@ function M.show(hint)
   width = math.min(width, max_w)
   local height = #lines
 
-  -- Create scratch buffer
   toast_buf = vim.api.nvim_create_buf(false, true)
   vim.bo[toast_buf].bufhidden = "wipe"
   vim.bo[toast_buf].filetype = "vimcoach_hint"
@@ -128,7 +118,6 @@ function M.show(hint)
   vim.api.nvim_buf_set_lines(toast_buf, 0, -1, false, lines)
   vim.bo[toast_buf].modifiable = false
 
-  -- Apply rich syntax highlights on line 0 and reason lines
   local col_actual_start = #prefix
   local col_actual_end = col_actual_start + #actual
   local col_arrow_end = col_actual_end + #arrow
@@ -145,7 +134,6 @@ function M.show(hint)
     vim.api.nvim_buf_add_highlight(toast_buf, ns_id, "VimCoachReason", i, 0, -1)
   end
 
-  -- Determine window placement
   local win_opts = {
     width = width,
     height = height,
@@ -156,7 +144,6 @@ function M.show(hint)
     zindex = 200,
   }
 
-  -- Add title on border (supported in Neovim 0.9+)
   if vim.fn.has("nvim-0.9") == 1 then
     win_opts.title = { { header_title, hint.is_strict_block and "VimCoachStrict" or "VimCoachTitle" } }
     win_opts.title_pos = "left"
@@ -172,7 +159,7 @@ function M.show(hint)
     win_opts.anchor = "SE"
     win_opts.row = math.max(1, vim.o.lines - vim.o.cmdheight - 2)
     win_opts.col = math.max(1, vim.o.columns - 2)
-  else -- top_right (default)
+  else
     win_opts.relative = "editor"
     win_opts.anchor = "NE"
     win_opts.row = 1
@@ -189,7 +176,6 @@ function M.show(hint)
   pcall(vim.api.nvim_set_option_value, "winhl", "Normal:VimCoachNormal,FloatBorder:VimCoachBorder", { win = toast_win })
   pcall(vim.api.nvim_set_option_value, "winblend", 8, { win = toast_win })
 
-  -- Auto-dismiss timer
   local duration = ui_cfg.duration_ms or 4500
   dismiss_timer = uv.new_timer()
   if dismiss_timer then

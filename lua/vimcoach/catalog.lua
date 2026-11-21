@@ -1,18 +1,6 @@
----@class VimCoachRuleMeta
----@field id string Unique rule identifier
----@field title string Human-readable skill name
----@field category "visual"|"text_objects"|"navigation"|"editing"|"repetition"|"insert"
----@field level 1|2|3 Difficulty tier (1=Fundamentals, 2=Intermediate, 3=Fluency)
----@field shortcut string Canonical shortcut display (e.g. 'ci"', 'f<ch>', '.')
----@field summary string Concise explanation of why this idiom is better
-
 local M = {}
 
----@type table<string, VimCoachRuleMeta>
 M.rules = {
-  -- =========================================================================
-  -- VISUAL & TEXT OBJECTS
-  -- =========================================================================
   textobj_quotes = {
     id = "textobj_quotes",
     title = "Quote Text Objects",
@@ -110,9 +98,6 @@ M.rules = {
     summary = "Operate across the whole file from line 1 to G without holding j in Visual mode.",
   },
 
-  -- =========================================================================
-  -- NAVIGATION
-  -- =========================================================================
   nav_line_start = {
     id = "nav_line_start",
     title = "Jump to Start of Line",
@@ -226,9 +211,6 @@ M.rules = {
     summary = "Keep your hands on home row and use Vim motions instead of arrow keys.",
   },
 
-  -- =========================================================================
-  -- COMPOUND EDITING
-  -- =========================================================================
   edit_delete_to_eol = {
     id = "edit_delete_to_eol",
     title = "Single-Key EOL Operators",
@@ -334,9 +316,6 @@ M.rules = {
     summary = "Delete spans with `d{motion}` instead of pressing `x` repeatedly.",
   },
 
-  -- =========================================================================
-  -- REPETITION & SEARCH
-  -- =========================================================================
   rep_dot = {
     id = "rep_dot",
     title = "Dot Repeat",
@@ -370,9 +349,6 @@ M.rules = {
     summary = "Prefix `dd` or `yy` with a count (or use `dip`/`yip`) instead of repeating them line by line.",
   },
 
-  -- =========================================================================
-  -- INSERT MODE
-  -- =========================================================================
   insert_ctrl_w = {
     id = "insert_ctrl_w",
     title = "Delete Word in Insert Mode",

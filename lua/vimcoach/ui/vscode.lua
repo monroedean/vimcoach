@@ -6,14 +6,10 @@ local M = {}
 
 local last_bridge_status = "uninitialized"
 
----Return true when running inside VS Code via vscode-neovim.
----@return boolean
 function M.is_vscode()
   return vim.g.vscode ~= nil and config.options.vscode.enabled
 end
 
----Safely load the vscode-neovim Lua module.
----@return table|nil
 local function get_vscode()
   local ok, vscode = pcall(require, "vscode")
   if ok and type(vscode) == "table" then
@@ -26,9 +22,6 @@ local function get_vscode()
   return nil
 end
 
----Persist a tiny diagnostic snapshot so VS Code bridge issues are trivially inspectable.
----@param status string
----@param extra table|nil
 local function write_debug_snapshot(status, extra)
   last_bridge_status = status
   local path = vim.fn.stdpath("data") .. "/vimcoach/vscode_debug.json"

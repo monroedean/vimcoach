@@ -9,8 +9,10 @@ local M = {}
 
 local initialized = false
 
----Initialize VimCoach with optional user configuration.
----@param opts table|nil
+function M._is_setup()
+  return initialized
+end
+
 function M.setup(opts)
   config.setup(opts)
   commands.register()
@@ -24,7 +26,6 @@ function M.setup(opts)
     strict.disable()
   end
 
-  -- Sync stats to VS Code companion extension on startup if running in vscode-neovim
   vim.schedule(function()
     ui.sync()
   end)
@@ -32,7 +33,6 @@ function M.setup(opts)
   initialized = true
 end
 
----Enable VimCoach coaching.
 function M.enable()
   if not initialized then
     M.setup({})
@@ -45,7 +45,6 @@ function M.enable()
   vim.notify("VimCoach enabled (" .. config.options.mode .. " mode)", vim.log.levels.INFO, { title = "VimCoach" })
 end
 
----Disable VimCoach coaching.
 function M.disable()
   config.options.enabled = false
   keystream.detach()
@@ -55,7 +54,6 @@ function M.disable()
   vim.notify("VimCoach paused", vim.log.levels.INFO, { title = "VimCoach" })
 end
 
----Toggle VimCoach on/off.
 function M.toggle()
   if config.options.enabled then
     M.disable()
@@ -64,8 +62,6 @@ function M.toggle()
   end
 end
 
----Switch coaching mode: "coach" | "strict" | "adaptive".
----@param mode "coach"|"strict"|"adaptive"
 function M.set_mode(mode)
   if mode ~= "coach" and mode ~= "strict" and mode ~= "adaptive" then
     vim.notify("VimCoach: mode must be 'coach', 'strict', or 'adaptive'", vim.log.levels.ERROR, { title = "VimCoach" })
@@ -79,26 +75,21 @@ function M.set_mode(mode)
   vim.notify("VimCoach mode set to: " .. mode, vim.log.levels.INFO, { title = "VimCoach" })
 end
 
----Open the interactive Mastery Dashboard.
 function M.dashboard()
   mastery.load()
   ui.open_dashboard()
 end
 
----Alias for dashboard (also prints concise text summary in headless/script contexts).
 function M.report()
   M.dashboard()
 end
 
----Reset all habit and mastery stats.
 function M.reset()
   mastery.reset()
   ui.sync()
   vim.notify("VimCoach stats reset.", vim.log.levels.INFO, { title = "VimCoach" })
 end
 
----Return a compact statusline component string (great for lualine.nvim / heirline.nvim).
----@return string
 function M.statusline()
   if not config.options.enabled then
     return ""
@@ -109,8 +100,6 @@ function M.statusline()
   return string.format("%s%d%%%s", icon, fluency, mode_tag)
 end
 
----Return current mastery summary table (for custom integrations / statuslines).
----@return table
 function M.get_summary()
   return mastery.get_summary()
 end

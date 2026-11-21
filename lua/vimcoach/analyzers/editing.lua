@@ -107,17 +107,6 @@ function M.analyze_operator(ctx)
   return candidates
 end
 
----Analyze entering Insert mode right after a Normal-mode motion or delete.
----@param ctx table {
----  insert_key: string,             -- "i"|"a"|"I"|"A"|"o"|"O"
----  prev_nav: table|nil,            -- Navigation episode right before insert_key
----  prev_delete: table|nil,         -- { cmd = string, row = int, col = int, elapsed_ms = int, deleted_text = string|nil }
----  line: string,
----  row: integer,
----  col: integer,                   -- 1-indexed col at moment insert_key was pressed
----  total_lines: integer,
----}
----@return table[] candidates
 function M.analyze_insert_entry(ctx)
   if not ctx or not ctx.insert_key then
     return {}
@@ -136,9 +125,6 @@ function M.analyze_insert_entry(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 1. DELETE THEN INSERT -> CHANGE (`dw`+`i` -> `cw`, `di"`+`i` -> `ci"`, `dd`+`O` -> `cc`)
-  -- =========================================================================
   local del = ctx.prev_delete
   if del and del.elapsed_ms <= (config.options.thresholds.combo_window_ms or 1600) then
     local dcmd = del.cmd or ""
@@ -186,9 +172,6 @@ function M.analyze_insert_entry(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 2. MOTION THEN INSERT (`0i`/`^i` -> `I`, `$a` -> `A`, `li` -> `a`, `ha` -> `i`, `ko` -> `O`)
-  -- =========================================================================
   local nav = ctx.prev_nav
   if nav and nav.keys and #nav.keys >= 1 then
     local keys = nav.keys
@@ -263,24 +246,6 @@ function M.analyze_insert_entry(ctx)
   return candidates
 end
 
----Analyze a completed Insert session on `InsertLeave` using before/after buffer diffs!
----Detects: `~` (case flip), `<C-a>`/`<C-x>` (number ±1), `r<ch>` (1-char replace),
----`s` (`xi` + multi-char), `o` (`A<CR>` / `$a<CR>`), `>>`/`<<` (manual indent), `J` (manual join).
----@param ctx table {
----  entry_key: string,              -- "i"|"a"|"I"|"A"|"c..."|"s"|"S"|"C"|"o"|"O"
----  prev_delete: table|nil,         -- { cmd = "x"|"X"|"dw"|..., deleted_text = string|nil }
----  inserted_keys: string[],        -- typed keys in insert mode (excluding <Esc>)
----  before_line: string,
----  after_line: string,
----  before_row: integer,
----  after_row: integer,
----  before_col: integer,            -- 1-indexed col before edit
----  before_line_count: integer,
----  after_line_count: integer,
----  deleted_word: string|nil,       -- word under cursor before change/delete
----  after_word: string|nil,         -- word at cursor after insert leave
----}
----@return table[] candidates
 function M.analyze_insert_leave(ctx)
   if not ctx then
     return {}
@@ -297,9 +262,6 @@ function M.analyze_insert_leave(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 1. `A<CR>` or `$a<CR>` -> `o` (open line below)
-  -- =========================================================================
   if (ik == "A" or ik == "$a") and #ins >= 1 and ins[1] == "<CR>" then
     local actual = ik .. "<CR>"
     push(make_candidate(
@@ -313,9 +275,6 @@ function M.analyze_insert_leave(ctx)
     return candidates
   end
 
-  -- =========================================================================
-  -- 2. MANUAL LINE JOIN (`A<Del>` / `$a<Del>` or `0i<BS>` reducing line count by 1)
-  -- =========================================================================
   if ctx.before_line_count and ctx.after_line_count and ctx.after_line_count == ctx.before_line_count - 1 then
     if #ins >= 1 and #ins <= 2 and (ins[1] == "<Del>" or ins[1] == "<BS>") then
       push(make_candidate(
@@ -330,10 +289,7 @@ function M.analyze_insert_leave(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 3. `x` + `i`/`a` (deferred from insert entry so we know exact typed chars!)
-  --    Also check `s` + 1 char + `<Esc>` -> `r<ch>` or `~`!
-  -- =========================================================================
+  -- Deferred from insert entry so we can distinguish ~, <C-a>/<C-x>, r<ch>, and s
   local is_single_char_del = (del and (del.cmd == "x" or del.cmd == "X") and (ik == "i" or ik == "a"))
   local is_sub_char = (ik == "s" or ik == "cl")
 
@@ -397,9 +353,6 @@ function M.analyze_insert_leave(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 4. NUMBER INCREMENT / DECREMENT VIA CHANGE (`ciw43<Esc>` replacing `42`) -> `<C-a>` / `<C-x>`
-  -- =========================================================================
   if ctx.deleted_word and ctx.after_word and ctx.deleted_word ~= ctx.after_word then
     if ctx.deleted_word:match("^%-?%d+$") and ctx.after_word:match("^%-?%d+$") then
       local old_num = tonumber(ctx.deleted_word)
@@ -420,9 +373,6 @@ function M.analyze_insert_leave(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 5. MANUAL INDENTATION (`I<Space><Space><Esc>` or `I<Tab><Esc>`) -> `>>`
-  -- =========================================================================
   if (ik == "I" or ik == "0i" or ik == "^i") and #ins >= 1 and ctx.before_row == ctx.after_row then
     local only_indent_chars = true
     local only_delete_ws = true

@@ -170,9 +170,7 @@ function M.analyze(ctx)
     }
   end
 
-  -- =========================================================================
-  -- 1. WHOLE FILE SELECTION (ggdG / ggyG / gg=G)
-  -- =========================================================================
+  -- Whole file
   if s_row == 1 and e_row == total_lines and total_lines >= 4 then
     local full_start = is_linewise or s_col <= buf.first_non_blank(s_line)
     local full_end = is_linewise or e_col >= buf.last_char_col(e_line)
@@ -187,9 +185,7 @@ function M.analyze(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 2. WHOLE SINGLE LINE (dd / cc / yy / >> / << / ==)
-  -- =========================================================================
+  -- Whole single line
   if single_line and LINEWISE_SHORTCUT[op] then
     local covers_line = is_linewise
       or (s_col == 1 and e_col >= buf.last_char_col(s_line) and #s_line > 0)
@@ -205,11 +201,7 @@ function M.analyze(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 3. TEXT OBJECTS (Quotes, Tags, Brackets, Paragraphs, Words)
-  -- =========================================================================
-
-  -- 3a. Quotes (single line, charwise)
+  -- Text objects (quotes, tags, brackets, paragraphs, words)
   if single_line and not is_linewise then
     local quote_obj = buf.match_quote_object(s_line, s_col, e_col)
     if quote_obj then
@@ -306,9 +298,7 @@ function M.analyze(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 4. TO END OF LINE (`D` / `C` / `Y`) & START OF LINE (`d0` / `c^`)
-  -- =========================================================================
+  -- To end/start of line
   if single_line and not is_linewise then
     local line_end = buf.last_char_col(s_line)
     local first_nb = buf.first_non_blank(s_line)
@@ -337,9 +327,6 @@ function M.analyze(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 5. UNNECESSARY VISUAL MODE AROUND A SINGLE CLEAN MOTION/TEXTOBJ
-  -- =========================================================================
   local direct_cmd = detect_unnecessary_visual_keys(keys, op)
   if direct_cmd then
     add(
@@ -350,9 +337,6 @@ function M.analyze(ctx)
     )
   end
 
-  -- =========================================================================
-  -- 6. SLOW STEPPING IN VISUAL MODE -> DIRECT OPERATOR + TARGET MOTION
-  -- =========================================================================
   if single_line and not is_linewise and actual_key_count >= 4 then
     local forward = (anchor_col == s_col and e_col > anchor_col)
 
@@ -398,9 +382,6 @@ function M.analyze(ctx)
     end
   end
 
-  -- =========================================================================
-  -- 7. MULTI-LINE VISUAL LINE STEPPING (Vjjjjjd -> 6dd / d5j)
-  -- =========================================================================
   if is_linewise and num_lines >= (config.options.thresholds.vertical_count_min or 4) then
     -- Count how many j/k/arrow presses were used inside Visual Line mode
     local step_count = 0

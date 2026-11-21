@@ -9,10 +9,6 @@ local M = {
   insert = require("vimcoach.analyzers.insert"),
 }
 
----Select the single highest-value suggestion from a list of candidates.
----Balances semantic priority (idiomatic Vim habits) with actual keystrokes saved.
----@param candidates table[]
----@return table|nil best
 function M.pick_best(candidates)
   if not candidates or #candidates == 0 then
     return nil
@@ -32,10 +28,6 @@ function M.pick_best(candidates)
   return best
 end
 
----Process candidate suggestions: pick the best one, check cooldowns, record stats, and emit to UI.
----@param candidates table[]
----@param opts table|nil { force = boolean|nil }
----@return table|nil emitted
 function M.emit(candidates, opts)
   if not config.options.enabled then
     return nil
