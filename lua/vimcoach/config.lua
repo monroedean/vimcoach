@@ -5,9 +5,9 @@ M.defaults = {
   mode = "coach", -- "coach" | "strict" | "adaptive"
   adaptive_strict_misses = 8,
 
-  cooldown_ms = 2200,
-  rule_cooldown_ms = 14000,
-  mastery_cooldown_multiplier = 3.0,
+  cooldown_ms = 0,
+  rule_cooldown_ms = 0,
+  mastery_cooldown_multiplier = 1.0,
 
   assume_nvim_Y = true,
   practical_only = true,
@@ -66,7 +66,7 @@ M.defaults = {
     repeat_line_op_min = 4,
     insert_bs_min = 4,
     insert_arrow_min = 3,
-    episode_timeout_ms = 1100,
+    episode_timeout_ms = 600,
     combo_window_ms = 1600,
     dot_repeat_window_ms = 25000,
   },

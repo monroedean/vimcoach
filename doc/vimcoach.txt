@@ -55,8 +55,8 @@ Call `require("vimcoach").setup(opts)` in your Neovim config: >lua
   require("vimcoach").setup({
     enabled = true,
     mode = "coach", -- "coach" | "strict" | "adaptive"
-    cooldown_ms = 2200,
-    rule_cooldown_ms = 14000,
+    cooldown_ms = 0,
+    rule_cooldown_ms = 0,
     practical_only = true,
     ui = {
       style = "float",       -- "float" | "notify" | "echo"

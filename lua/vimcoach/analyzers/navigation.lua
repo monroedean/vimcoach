@@ -122,7 +122,10 @@ function M.analyze(ctx)
 
   local arrow_count = count_keys(keys, function(k) return ARROW_KEYS[k] == true end)
   local hl_count = count_keys(keys, function(k) return k == "h" or k == "l" or k == "<Left>" or k == "<Right>" end)
-  local jk_count = count_keys(keys, function(k) return k == "j" or k == "k" or k == "<Up>" or k == "<Down>" end)
+  local j_count = count_keys(keys, function(k) return k == "j" or k == "<Down>" end)
+  local k_count = count_keys(keys, function(k) return k == "k" or k == "<Up>" end)
+  local jk_count = j_count + k_count
+  local is_vertical_browsing = (j_count >= 4 and k_count >= 4)
   local word_key_count = count_keys(keys, function(k) return k == "w" or k == "b" or k == "e" or k == "W" or k == "B" or k == "E" end)
 
   local candidates = {}
@@ -296,19 +299,32 @@ function M.analyze(ctx)
       add("nav_half_page", cmd, 90, reason, 2)
     end
 
-    -- 4f. Medium vertical traversal (4..14 lines) -> `{count}j` / `{count}k`
-    if dy >= (thresholds.vertical_count_min or 4)
-      and dy < (thresholds.vertical_page_min or 15)
-      and jk_count >= (thresholds.vertical_count_min or 4)
-    then
-      local dir = (e_row > s_row) and "j" or "k"
-      local cmd = tostring(dy) .. dir
-      add(
-        "nav_vertical_count",
-        cmd,
-        80,
-        string.format("Use `%s` instead of pressing `%s` %d times (tip: enable `relativenumber`).", cmd, dir, jk_count)
-      )
+    -- If user scrolled both down and up (e.g. j×18k×22), they were browsing, not trying to jump net dy
+    if is_vertical_browsing then
+      if jk_count >= (thresholds.vertical_page_min or 15) then
+        add(
+          "nav_half_page",
+          "<C-d> / <C-u>",
+          86,
+          string.format("Use `<C-d>` / `<C-u>` to browse up and down instead of tapping `j`/`k` %d times.", jk_count),
+          2
+        )
+      end
+    else
+      -- 4f. Medium vertical traversal (4..14 lines) -> `{count}j` / `{count}k`
+      if dy >= (thresholds.vertical_count_min or 4)
+        and dy < (thresholds.vertical_page_min or 15)
+        and jk_count >= (thresholds.vertical_count_min or 4)
+      then
+        local dir = (e_row > s_row) and "j" or "k"
+        local cmd = tostring(dy) .. dir
+        add(
+          "nav_vertical_count",
+          cmd,
+          80,
+          string.format("Use `%s` instead of pressing `%s` %d times (tip: enable `relativenumber`).", cmd, dir, jk_count)
+        )
+      end
     end
   end
 

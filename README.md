@@ -2,7 +2,7 @@
 
 A Vim motion coach for Neovim (and VS Code via `vscode-neovim`).
 
-Unlike `hardtime.nvim`, which mainly blocks key spam and matches short regexes, `vimcoach` reads your actual buffer, visual selections, cursor jumps, and before/after edits to tell you the faster native Vim way to do what you just did.
+`vimcoach` reads your actual buffer, visual selections, cursor jumps, and before/after edits to tell you the faster native Vim way to do what you just did.
 
 ## What it catches
 
@@ -12,7 +12,7 @@ Unlike `hardtime.nvim`, which mainly blocks key spam and matches short regexes, 
 - **Repetition & search** — repeating an edit manually → `.`, searching the word under cursor with `/` → `*`/`#`, and repeating search+change → `cgn` + `.`.
 - **Insert mode** — mashing `<BS>` → `<C-w>`/`<C-u>`, arrow keys in insert mode.
 
-It skips niche Vim-golf tricks (won't nag `jjj` or suggest `4fe` / `12l`), ignores slow reading pauses, and tracks your mastery over time so it backs off on habits you've already learned.
+It skips niche Vim-golf tricks (won't nag `jjj` or suggest `4fe` / `12l`), ignores slow reading pauses, and tracks your habit mastery over time in a dashboard.
 
 ## Install
 
@@ -22,7 +22,7 @@ With `lazy.nvim`:
 return { "monroedean/vimcoach" }
 ```
 
-That's it — works in Neovim and VS Code (`vscode-neovim`) out of the box.
+That's it.
 
 In VS Code, hints show up as a fading inline badge at the end of the line (hover for details) plus a brief status bar message.
 
@@ -44,13 +44,13 @@ function() return require("vimcoach").statusline() end
 
 ## Config
 
-Only override what you need — full defaults live in `lua/vimcoach/config.lua`:
+Only override what you need. Full defaults live in `lua/vimcoach/config.lua`:
 
 ```lua
 require("vimcoach").setup({
   mode = "coach",
-  cooldown_ms = 2200,
-  rule_cooldown_ms = 14000,
+  cooldown_ms = 0,
+  rule_cooldown_ms = 0,
   practical_only = true,
   disabled_rules = {}, -- e.g. { nav_vertical_count = true }
   ui = {
