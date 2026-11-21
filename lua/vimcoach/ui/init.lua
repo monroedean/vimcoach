@@ -53,10 +53,4 @@ function M.close_toast()
   float_ui.close()
 end
 
-function M.sync()
-  if vscode_ui.is_vscode() then
-    vscode_ui.sync_stats()
-  end
-end
-
 return M

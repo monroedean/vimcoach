@@ -45,19 +45,9 @@ local function write_debug_snapshot(status, extra)
 end
 
 local SHOW_HINT_JS = [[
-const cmds = await vscode.commands.getCommands(true);
-if (args.useCompanion && cmds.includes("vimcoach.showHint")) {
-  await vscode.commands.executeCommand("vimcoach.showHint", args.payload);
-  if (args.summary) {
-    await vscode.commands.executeCommand("vimcoach.syncStats", args.summary);
-  }
-  return "companion";
-}
-
 const style = args.style || "inline_and_status";
 const durationMs = args.durationMs || 4500;
 
-// 1. Sleek styled inline pill at end of the active line (with full explanation on hover)
 if (style === "inline" || style === "inline_and_status") {
   const editor = vscode.window.activeTextEditor;
   if (editor && args.inlineText) {
@@ -98,12 +88,10 @@ if (style === "inline" || style === "inline_and_status") {
   }
 }
 
-// 2. Clean auto-clearing Status Bar pill (never steals focus, never stacks)
 if (style === "status_bar" || style === "inline_and_status") {
   vscode.window.setStatusBarMessage(args.statusText, durationMs);
 }
 
-// 3. Toast popup ONLY if explicitly opted into style = "toast"
 if (style === "toast") {
   if (args.isWarn) {
     vscode.window.showWarningMessage(args.toastText);
@@ -114,37 +102,10 @@ if (style === "toast") {
 return "native:" + style;
 ]]
 
-local SYNC_STATS_JS = [[
-const cmds = await vscode.commands.getCommands(true);
-if (cmds.includes("vimcoach.syncStats")) {
-  await vscode.commands.executeCommand("vimcoach.syncStats", args.summary);
-  return "synced";
-}
-return "no_companion";
-]]
-
-local OPEN_DASHBOARD_JS = [[
-const cmds = await vscode.commands.getCommands(true);
-if (cmds.includes("vimcoach.openDashboard")) {
-  if (args.summary) {
-    await vscode.commands.executeCommand("vimcoach.syncStats", args.summary);
-  }
-  await vscode.commands.executeCommand("vimcoach.openDashboard");
-  return "companion";
-}
-vscode.window.showInformationMessage(args.fallbackText);
-return "fallback";
-]]
-
----Send a coaching hint to VS Code (uses eval_async for guaranteed native toast + status bar + inline ghost text,
----and automatically upgrades to the companion extension if installed).
----@param hint table
 function M.show_hint(hint)
   local vscode = get_vscode()
   local meta = catalog.get(hint.rule_id)
   local title = meta and meta.title or "Vim Tip"
-  local category = meta and meta.category or "editing"
-  local summary = mastery.get_summary()
 
   local saved_str = (hint.keys_saved and hint.keys_saved > 0)
       and string.format(" (-%d key%s)", hint.keys_saved, hint.keys_saved == 1 and "" or "s")
@@ -167,29 +128,10 @@ function M.show_hint(hint)
     reason
   )
 
-  local payload = {
-    rule_id = hint.rule_id,
-    title = title,
-    category = category,
-    actual = actual,
-    suggested = suggested,
-    keys_saved = hint.keys_saved or 1,
-    reason = reason,
-    is_strict_block = hint.is_strict_block == true,
-    fluency = summary.fluency,
-    total_keys_saved = summary.total_keys_saved,
-    session_keys_saved = summary.session.keys_saved,
-    mode = config.options.mode,
-  }
-
-  -- Primary path: vscode-neovim's built-in eval_async (non-blocking, sleek inline pill + status bar)
   if vscode and type(vscode.eval_async) == "function" then
     local ok, err = pcall(vscode.eval_async, SHOW_HINT_JS, {
       args = {
-        useCompanion = config.options.vscode.use_companion_extension == true,
         style = config.options.vscode.style or "inline_and_status",
-        payload = payload,
-        summary = summary,
         isWarn = is_warn,
         toastText = toast_text,
         statusText = status_text,
@@ -213,7 +155,6 @@ function M.show_hint(hint)
     end
   end
 
-  -- Fallback 1: vscode.notify
   local lvl = is_warn and vim.log.levels.WARN or vim.log.levels.INFO
   if vscode and type(vscode.notify) == "function" then
     local ok = pcall(vscode.notify, toast_text, lvl)
@@ -226,15 +167,10 @@ function M.show_hint(hint)
     end
   end
 
-  -- Fallback 2: vim.notify
-  write_debug_snapshot("vim_notify_fallback", {
-    has_vscode_module = vscode ~= nil,
-  })
+  write_debug_snapshot("vim_notify_fallback", { has_vscode_module = vscode ~= nil })
   vim.notify(toast_text, lvl, { title = "VimCoach" })
 end
 
----Return diagnostic info about VS Code bridge state.
----@return table
 function M.debug_info()
   local vscode = get_vscode()
   return {
@@ -248,26 +184,12 @@ function M.debug_info()
   }
 end
 
----Push the latest mastery summary to the VS Code companion extension (non-blocking).
-function M.sync_stats()
-  local vscode = get_vscode()
-  if not vscode or not config.options.vscode.use_companion_extension then
-    return
-  end
-  if type(vscode.eval_async) == "function" then
-    pcall(vscode.eval_async, SYNC_STATS_JS, {
-      args = { summary = mastery.get_summary() },
-    })
-  end
-end
-
----Open the Mastery Dashboard in VS Code (companion sidebar if available, else summary notification).
 function M.open_dashboard()
   local vscode = get_vscode()
   local summary = mastery.get_summary()
   local top = summary.top_habits[1]
   local top_str = top and string.format(" | Top habit: %s (%s, %dx)", top.title, top.shortcut, top.missed) or ""
-  local fallback_text = string.format(
+  local msg = string.format(
     "VimCoach Fluency: %d%% | Good motions: %d | Tips: %d | Saveable keys: %d%s",
     summary.fluency,
     summary.total_good_motions,
@@ -276,19 +198,12 @@ function M.open_dashboard()
     top_str
   )
 
-  if vscode and type(vscode.eval_async) == "function" then
-    pcall(vscode.eval_async, OPEN_DASHBOARD_JS, {
-      args = { summary = summary, fallbackText = fallback_text },
-    })
-    return
-  end
-
   if vscode and type(vscode.notify) == "function" then
-    pcall(vscode.notify, fallback_text, vim.log.levels.INFO)
+    pcall(vscode.notify, msg, vim.log.levels.INFO)
     return
   end
 
-  vim.notify(fallback_text, vim.log.levels.INFO, { title = "VimCoach" })
+  vim.notify(msg, vim.log.levels.INFO, { title = "VimCoach" })
 end
 
 return M

@@ -24,7 +24,7 @@ return { "monroedean/vimcoach" }
 
 That's it — works in Neovim and VS Code (`vscode-neovim`) out of the box.
 
-In VS Code, hints show up as a fading inline badge at the end of the line (hover for details) plus a brief status bar message. An optional companion extension lives in `vscode-extension/` if you also want a sidebar dashboard.
+In VS Code, hints show up as a fading inline badge at the end of the line (hover for details) plus a brief status bar message.
 
 ## Commands
 

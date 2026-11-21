@@ -91,8 +91,6 @@ M.defaults = {
   vscode = {
     enabled = true,
     style = "inline_and_status", -- "inline" | "inline_and_status" | "status_bar" | "toast"
-    use_companion_extension = true,
-    fallback_notify = false,
     notify_level = "info",
   },
 

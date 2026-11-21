@@ -26,10 +26,6 @@ function M.setup(opts)
     strict.disable()
   end
 
-  vim.schedule(function()
-    ui.sync()
-  end)
-
   initialized = true
 end
 
@@ -41,7 +37,6 @@ function M.enable()
   config.options.enabled = true
   keystream.attach()
   strict.sync()
-  ui.sync()
   vim.notify("VimCoach enabled (" .. config.options.mode .. " mode)", vim.log.levels.INFO, { title = "VimCoach" })
 end
 
@@ -50,7 +45,6 @@ function M.disable()
   keystream.detach()
   strict.disable()
   ui.close_toast()
-  ui.sync()
   vim.notify("VimCoach paused", vim.log.levels.INFO, { title = "VimCoach" })
 end
 
@@ -71,7 +65,6 @@ function M.set_mode(mode)
   if config.options.enabled then
     strict.sync()
   end
-  ui.sync()
   vim.notify("VimCoach mode set to: " .. mode, vim.log.levels.INFO, { title = "VimCoach" })
 end
 
@@ -86,7 +79,6 @@ end
 
 function M.reset()
   mastery.reset()
-  ui.sync()
   vim.notify("VimCoach stats reset.", vim.log.levels.INFO, { title = "VimCoach" })
 end
 

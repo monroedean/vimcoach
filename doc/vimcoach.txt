@@ -79,13 +79,10 @@ Call `require("vimcoach").setup(opts)` in your Neovim config: >lua
 5. VS CODE (VSCODE-NEOVIM)                                   *vimcoach-vscode*
 
 When running inside VS Code via `vscode-neovim` (`vim.g.vscode ~= nil`),
-VimCoach automatically routes tips to VS Code:
-
-- Out of the box (zero extra VS Code extensions): displays tips via
-  `require("vscode").notify`.
-- With the optional companion extension (`vscode-extension/`): displays a
-  live Status Bar Coach Pill, configurable toast notifications, and a full
-  Activity Bar Mastery Dashboard sidebar.
+VimCoach automatically displays hints as a fading inline pill badge at the
+end of the active line (with full explanation on hover) plus a brief status
+bar message. Configure `vscode.style` (`"inline"`, `"inline_and_status"`,
+`"status_bar"`, or `"toast"`).
 
 ==============================================================================
 6. LUA API                                                      *vimcoach-api*
