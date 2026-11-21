@@ -115,6 +115,54 @@ local function stop_nav_timer()
   end
 end
 
+local function capture_nav_context(snapshot)
+  if snapshot.lines or not vim.api.nvim_buf_is_valid(snapshot.bufnr) then
+    return
+  end
+  if vim.api.nvim_get_current_buf() ~= snapshot.bufnr then
+    return
+  end
+  local total_lines = vim.api.nvim_buf_line_count(snapshot.bufnr)
+  local min_r = math.max(1, math.min(snapshot.start_row, snapshot.end_row) - 2)
+  local max_r = math.min(total_lines, math.max(snapshot.start_row, snapshot.end_row) + 2)
+  snapshot.lines = buf.get_lines(snapshot.bufnr, min_r, max_r)
+  snapshot.base_row = min_r
+  snapshot.total_lines = total_lines
+  snapshot.win_top = vim.fn.line("w0")
+  snapshot.win_bot = vim.fn.line("w$")
+end
+
+local function analyze_nav_snapshot(snapshot)
+  if not snapshot or snapshot.analyzed or not snapshot.keys or #snapshot.keys < 2 then
+    return
+  end
+  snapshot.analyzed = true
+
+  capture_nav_context(snapshot)
+
+  local jump_origin = state.last_jump_origin
+  if jump_origin and (now_ms() - jump_origin.ts_ms > 12000) then
+    jump_origin = nil
+  end
+
+  vim.schedule(function()
+    if not vim.api.nvim_buf_is_valid(snapshot.bufnr) then
+      return
+    end
+    if vim.api.nvim_get_current_buf() ~= snapshot.bufnr then
+      return
+    end
+    if config.is_buffer_disabled(snapshot.bufnr) then
+      return
+    end
+
+    snapshot.last_jump_origin = jump_origin
+
+    local candidates = analyzers.navigation.analyze(snapshot)
+    analyzers.emit(candidates)
+  end)
+end
+
 ---Flush the active navigation episode and analyze it (unless `suppress_emit` is true).
 ---@param suppress_emit boolean|nil
 local function flush_nav(suppress_emit)
@@ -135,48 +183,13 @@ local function flush_nav(suppress_emit)
     keys = nav.keys,
     elapsed_ms = now_ms() - nav.last_ts_ms,
     ts_ms = now_ms(),
+    analyzed = false,
   }
   state.last_completed_nav = snapshot
 
-  if suppress_emit or #nav.keys < 2 then
-    return snapshot
+  if not suppress_emit then
+    analyze_nav_snapshot(snapshot)
   end
-
-  -- Schedule buffer read + trajectory analysis safely outside on_key
-  local jump_origin = state.last_jump_origin
-  if jump_origin and (now_ms() - jump_origin.ts_ms > 12000) then
-    jump_origin = nil
-  end
-
-  vim.schedule(function()
-    if not vim.api.nvim_buf_is_valid(snapshot.bufnr) then
-      return
-    end
-    if vim.api.nvim_get_current_buf() ~= snapshot.bufnr then
-      return
-    end
-    if config.is_buffer_disabled(snapshot.bufnr) then
-      return
-    end
-
-    -- Refresh final cursor position after Neovim processed the last key
-    local final_row, final_col = get_cursor_1indexed()
-    snapshot.end_row = final_row
-    snapshot.end_col = final_col
-
-    local total_lines = vim.api.nvim_buf_line_count(snapshot.bufnr)
-    local min_r = math.max(1, math.min(snapshot.start_row, snapshot.end_row) - 2)
-    local max_r = math.min(total_lines, math.max(snapshot.start_row, snapshot.end_row) + 2)
-    snapshot.lines = buf.get_lines(snapshot.bufnr, min_r, max_r)
-    snapshot.base_row = min_r
-    snapshot.total_lines = total_lines
-    snapshot.win_top = vim.fn.line("w0")
-    snapshot.win_bot = vim.fn.line("w$")
-    snapshot.last_jump_origin = jump_origin
-
-    local candidates = analyzers.navigation.analyze(snapshot)
-    analyzers.emit(candidates)
-  end)
 
   return snapshot
 end
@@ -267,10 +280,16 @@ local function begin_insert_session(entry_key, prev_delete, prev_nav)
     total_lines = line_count,
   }
 
+  if prev_nav and not prev_nav.analyzed and prev_nav.keys and #prev_nav.keys >= 2 then
+    capture_nav_context(prev_nav)
+  end
+
   vim.schedule(function()
     local candidates = analyzers.editing.analyze_insert_entry(entry_ctx)
     if #candidates > 0 then
       analyzers.emit(candidates)
+    elseif prev_nav and not prev_nav.analyzed then
+      analyze_nav_snapshot(prev_nav)
     end
   end)
 end

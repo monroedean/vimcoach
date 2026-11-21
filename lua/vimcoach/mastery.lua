@@ -55,6 +55,7 @@ M.session = {
 local last_global_hint_ms = 0
 local last_rule_hint_ms = {}
 local save_timer = nil
+local dirty = false
 local loaded = false
 
 local function now_ms()
@@ -103,6 +104,14 @@ end
 
 ---Write stats to disk immediately.
 function M.save_now()
+  if save_timer then
+    pcall(function()
+      save_timer:stop()
+      save_timer:close()
+    end)
+    save_timer = nil
+  end
+  dirty = false
   if not config.options.track_stats then
     return
   end
@@ -128,6 +137,7 @@ local function schedule_save()
   if not config.options.track_stats then
     return
   end
+  dirty = true
   if save_timer then
     save_timer:stop()
     save_timer:close()
@@ -138,14 +148,18 @@ local function schedule_save()
     return
   end
   save_timer:start(1500, 0, vim.schedule_wrap(function()
-    if save_timer then
-      save_timer:stop()
-      save_timer:close()
-      save_timer = nil
-    end
     M.save_now()
   end))
 end
+
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = vim.api.nvim_create_augroup("VimCoachMastery", { clear = true }),
+  callback = function()
+    if dirty then
+      M.save_now()
+    end
+  end,
+})
 
 ---Compute mastery percentage (0-100) for a rule using Laplace/Bayesian smoothing.
 ---@param rule_id string
