@@ -1,0 +1,13 @@
+# Node / VS Code extension build artifacts
+node_modules/
+vscode-extension/node_modules/
+vscode-extension/dist/
+*.vsix
+
+# Vim / OS temp files
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.log

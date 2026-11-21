@@ -1,0 +1,100 @@
+*vimcoach.txt*  Buffer-aware Vim motion & editing coach for Neovim + vscode-neovim
+
+==============================================================================
+CONTENTS                                                   *vimcoach-contents*
+
+  1. Introduction ................................. |vimcoach-intro|
+  2. Commands ..................................... |vimcoach-commands|
+  3. Configuration ................................ |vimcoach-config|
+  4. Coaching Modes ............................... |vimcoach-modes|
+  5. VS Code (vscode-neovim) ...................... |vimcoach-vscode|
+  6. Lua API ...................................... |vimcoach-api|
+
+==============================================================================
+1. INTRODUCTION                                               *vimcoach-intro*
+
+VimCoach is a buffer-aware, history-aware coaching engine for Neovim (and
+VS Code via `vscode-neovim`). Unlike regex-only keystream blockers, VimCoach
+inspects your actual buffer text, visual selection boundaries, navigation
+trajectories, and before/after edit diffs to surface the fastest practical
+native Vim idiom every time you take a slower route.
+
+==============================================================================
+2. COMMANDS                                                *vimcoach-commands*
+
+                                                                   *:VimCoach*
+:VimCoach [subcommand]
+    Control VimCoach. Subcommands:
+      dashboard  Open the interactive Mastery Dashboard (default)
+      toggle     Toggle coaching on/off
+      enable     Enable coaching
+      disable    Pause coaching
+      coach      Switch to non-blocking Coach mode
+      strict     Switch to Strict blocking mode
+      adaptive   Switch to Adaptive mode (blocks after repeated misses)
+      status     Display fluency & session summary
+      reset      Reset all persisted mastery statistics
+
+:VimCoachDashboard                                        *:VimCoachDashboard*
+    Open the interactive Mastery Dashboard.
+
+:VimCoachToggle                                              *:VimCoachToggle*
+    Toggle VimCoach on or off.
+
+:VimCoachStrict                                              *:VimCoachStrict*
+    Toggle Strict mode on or off.
+
+:VimCoachReset                                                *:VimCoachReset*
+    Reset persisted mastery and habit statistics.
+
+==============================================================================
+3. CONFIGURATION                                             *vimcoach-config*
+
+Call `require("vimcoach").setup(opts)` in your Neovim config: >lua
+
+  require("vimcoach").setup({
+    enabled = true,
+    mode = "coach", -- "coach" | "strict" | "adaptive"
+    cooldown_ms = 2200,
+    rule_cooldown_ms = 14000,
+    practical_only = true,
+    ui = {
+      style = "float",       -- "float" | "notify" | "echo"
+      position = "top_right", -- "top_right" | "bottom_right" | "cursor"
+      duration_ms = 4500,
+    },
+  })
+<
+
+==============================================================================
+4. COACHING MODES                                             *vimcoach-modes*
+
+- `coach` (default): Non-blocking floating coaching hints + mastery tracking.
+- `strict`: Blocks repeated restricted keys (`h`/`j`/`k`/`l`/arrows past
+  threshold) while still displaying buffer-aware optimal motion hints.
+- `adaptive`: Starts as non-blocking hints; automatically enables blocking
+  for a restricted habit once missed `adaptive_strict_misses` times.
+
+==============================================================================
+5. VS CODE (VSCODE-NEOVIM)                                   *vimcoach-vscode*
+
+When running inside VS Code via `vscode-neovim` (`vim.g.vscode ~= nil`),
+VimCoach automatically routes tips to VS Code:
+
+- Out of the box (zero extra VS Code extensions): displays tips via
+  `require("vscode").notify`.
+- With the optional companion extension (`vscode-extension/`): displays a
+  live Status Bar Coach Pill, configurable toast notifications, and a full
+  Activity Bar Mastery Dashboard sidebar.
+
+==============================================================================
+6. LUA API                                                      *vimcoach-api*
+
+- `require("vimcoach").setup(opts)`
+- `require("vimcoach").enable()` / `.disable()` / `.toggle()`
+- `require("vimcoach").set_mode("coach"|"strict"|"adaptive")`
+- `require("vimcoach").dashboard()`
+- `require("vimcoach").statusline()` (for lualine/heirline)
+- `require("vimcoach").get_summary()`
+
+vim:tw=78:ts=8:ft=help:norl:

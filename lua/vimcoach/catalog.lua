@@ -1,0 +1,427 @@
+---@class VimCoachRuleMeta
+---@field id string Unique rule identifier
+---@field title string Human-readable skill name
+---@field category "visual"|"text_objects"|"navigation"|"editing"|"repetition"|"insert"
+---@field level 1|2|3 Difficulty tier (1=Fundamentals, 2=Intermediate, 3=Fluency)
+---@field shortcut string Canonical shortcut display (e.g. 'ci"', 'f<ch>', '.')
+---@field summary string Concise explanation of why this idiom is better
+
+local M = {}
+
+---@type table<string, VimCoachRuleMeta>
+M.rules = {
+  -- =========================================================================
+  -- VISUAL & TEXT OBJECTS
+  -- =========================================================================
+  textobj_quotes = {
+    id = "textobj_quotes",
+    title = "Quote Text Objects",
+    category = "text_objects",
+    level = 1,
+    shortcut = 'ci" / di" / yi\'',
+    summary = "Operate inside or around quotes from anywhere inside (or before) them on the line — no Visual mode needed.",
+  },
+  textobj_brackets = {
+    id = "textobj_brackets",
+    title = "Bracket Text Objects",
+    category = "text_objects",
+    level = 1,
+    shortcut = "ci( / di{ / ya[",
+    summary = "Operate inside or around balanced (), [], {}, <> blocks directly, even across multiple lines.",
+  },
+  textobj_tag = {
+    id = "textobj_tag",
+    title = "HTML/XML Tag Text Objects",
+    category = "text_objects",
+    level = 2,
+    shortcut = "cit / dit / yat",
+    summary = "Operate inside or around matching <tag>...</tag> elements in one motion.",
+  },
+  textobj_word = {
+    id = "textobj_word",
+    title = "Word Text Objects",
+    category = "text_objects",
+    level = 1,
+    shortcut = "ciw / daw / yiw",
+    summary = "Operate on the entire word under the cursor from any character inside it — no need to move to word start.",
+  },
+  textobj_paragraph = {
+    id = "textobj_paragraph",
+    title = "Paragraph Text Objects",
+    category = "text_objects",
+    level = 2,
+    shortcut = "dip / yip / cip",
+    summary = "Operate on an entire blank-line-delimited block without visually selecting line by line.",
+  },
+  visual_unnecessary = {
+    id = "visual_unnecessary",
+    title = "Skip Visual Mode for Direct Operators",
+    category = "visual",
+    level = 1,
+    shortcut = "{op}{motion}",
+    summary = "Combine operators directly with motions or text objects — fewer keys and dot-repeatable with `.`.",
+  },
+  visual_whole_line = {
+    id = "visual_whole_line",
+    title = "Linewise Operator Shortcuts",
+    category = "visual",
+    level = 1,
+    shortcut = "dd / cc / yy / >>",
+    summary = "Double the operator to act on the whole line directly without entering Visual mode.",
+  },
+  visual_to_eol = {
+    id = "visual_to_eol",
+    title = "Operate to End of Line",
+    category = "visual",
+    level = 1,
+    shortcut = "D / C / Y",
+    summary = "Use uppercase D, C, or Y to delete, change, or yank from cursor to end of line in one key.",
+  },
+  visual_to_sol = {
+    id = "visual_to_sol",
+    title = "Operate to Start of Line",
+    category = "visual",
+    level = 2,
+    shortcut = "d0 / c^ / y0",
+    summary = "Operate directly to column 0 or first non-blank character instead of stepping backward in Visual mode.",
+  },
+  visual_motion_direct = {
+    id = "visual_motion_direct",
+    title = "Operator + Target Motion",
+    category = "visual",
+    level = 2,
+    shortcut = "dt<ch> / cf<ch> / dw",
+    summary = "Apply operators directly with target motions (f/t/w/e/%) instead of stepping in Visual mode.",
+  },
+  visual_multi_line = {
+    id = "visual_multi_line",
+    title = "Multi-line Direct Operators",
+    category = "visual",
+    level = 2,
+    shortcut = "{N}dd / {N}yy / d{N}j",
+    summary = "Use a count with linewise operators or motions instead of tapping j/k repeatedly in Visual Line mode.",
+  },
+  visual_whole_file = {
+    id = "visual_whole_file",
+    title = "Whole-Buffer Operator",
+    category = "visual",
+    level = 2,
+    shortcut = "ggdG / ggyG / gg=G",
+    summary = "Operate across the whole file from line 1 to G without holding j in Visual mode.",
+  },
+
+  -- =========================================================================
+  -- NAVIGATION
+  -- =========================================================================
+  nav_line_start = {
+    id = "nav_line_start",
+    title = "Jump to Start of Line",
+    category = "navigation",
+    level = 1,
+    shortcut = "0 / ^",
+    summary = "Jump instantly to column 0 (`0`) or first non-blank character (`^`) instead of stepping left.",
+  },
+  nav_line_end = {
+    id = "nav_line_end",
+    title = "Jump to End of Line",
+    category = "navigation",
+    level = 1,
+    shortcut = "$",
+    summary = "Jump instantly to the end of the line with `$` instead of stepping right.",
+  },
+  nav_find_char = {
+    id = "nav_find_char",
+    title = "Inline Character Search",
+    category = "navigation",
+    level = 1,
+    shortcut = "f<ch> / F<ch> / t<ch> / T<ch>",
+    summary = "Jump directly onto (`f`/`F`) or right before (`t`/`T`) a target character on the current line.",
+  },
+  nav_repeat_find = {
+    id = "nav_repeat_find",
+    title = "Repeat Inline Search",
+    category = "navigation",
+    level = 2,
+    shortcut = "; / ,",
+    summary = "Use `;` to repeat the last f/F/t/T search forward and `,` to go backward.",
+  },
+  nav_word_jump = {
+    id = "nav_word_jump",
+    title = "Word Motions",
+    category = "navigation",
+    level = 1,
+    shortcut = "w / b / e",
+    summary = "Hop by words (`w`, `b`, `e`) instead of mashing `h` or `l` character by character.",
+  },
+  nav_matching_pair = {
+    id = "nav_matching_pair",
+    title = "Matching Bracket Jump",
+    category = "navigation",
+    level = 1,
+    shortcut = "%",
+    summary = "Jump straight between matching (), [], and {} brackets with `%`.",
+  },
+  nav_file_bounds = {
+    id = "nav_file_bounds",
+    title = "Top / Bottom of File",
+    category = "navigation",
+    level = 1,
+    shortcut = "gg / G",
+    summary = "Jump immediately to the first line (`gg`) or last line (`G`) of the file.",
+  },
+  nav_paragraph = {
+    id = "nav_paragraph",
+    title = "Paragraph Jumps",
+    category = "navigation",
+    level = 1,
+    shortcut = "} / {",
+    summary = "Leap over code blocks and blank lines using `}` (next paragraph) and `{` (previous paragraph).",
+  },
+  nav_vertical_count = {
+    id = "nav_vertical_count",
+    title = "Counted Vertical Jumps",
+    category = "navigation",
+    level = 1,
+    shortcut = "{count}j / {count}k",
+    summary = "Use a relative count (like `6j` or `8k`) instead of tapping `j` or `k` repeatedly.",
+  },
+  nav_half_page = {
+    id = "nav_half_page",
+    title = "Half-Page Scrolling",
+    category = "navigation",
+    level = 1,
+    shortcut = "<C-d> / <C-u>",
+    summary = "Scroll half a screen down (`<C-d>`) or up (`<C-u>`) when traversing long distances.",
+  },
+  nav_search_jump = {
+    id = "nav_search_jump",
+    title = "Search to Jump",
+    category = "navigation",
+    level = 2,
+    shortcut = "/pattern",
+    summary = "Search directly with `/` (or `?`) to teleport straight to a symbol or word on screen.",
+  },
+  nav_viewport = {
+    id = "nav_viewport",
+    title = "Viewport Jumps",
+    category = "navigation",
+    level = 2,
+    shortcut = "H / M / L",
+    summary = "Jump directly to the High (top), Middle, or Low (bottom) line of the visible screen.",
+  },
+  nav_jumplist = {
+    id = "nav_jumplist",
+    title = "Jump List Navigation",
+    category = "navigation",
+    level = 2,
+    shortcut = "<C-o> / <C-i>",
+    summary = "Jump straight back to your previous cursor location with `<C-o>` instead of scrolling back.",
+  },
+  nav_arrows = {
+    id = "nav_arrows",
+    title = "Avoid Arrow Keys in Normal Mode",
+    category = "navigation",
+    level = 1,
+    shortcut = "hjkl / w / f / }",
+    summary = "Keep your hands on home row and use Vim motions instead of arrow keys.",
+  },
+
+  -- =========================================================================
+  -- COMPOUND EDITING
+  -- =========================================================================
+  edit_delete_to_eol = {
+    id = "edit_delete_to_eol",
+    title = "Single-Key EOL Operators",
+    category = "editing",
+    level = 1,
+    shortcut = "D / C / Y",
+    summary = "`D`, `C`, and `Y` act to end-of-line in one keystroke instead of `d$`, `c$`, or `y$`.",
+  },
+  edit_insert_line_start = {
+    id = "edit_insert_line_start",
+    title = "Insert at Line Start",
+    category = "editing",
+    level = 1,
+    shortcut = "I",
+    summary = "Press `I` to jump to the first non-blank character and enter Insert mode in one key.",
+  },
+  edit_append_line_end = {
+    id = "edit_append_line_end",
+    title = "Append at Line End",
+    category = "editing",
+    level = 1,
+    shortcut = "A",
+    summary = "Press `A` to jump to the end of the line and enter Insert mode in one key.",
+  },
+  edit_open_line = {
+    id = "edit_open_line",
+    title = "Open Line Below / Above",
+    category = "editing",
+    level = 1,
+    shortcut = "o / O",
+    summary = "Use `o` (below) or `O` (above) to open a new indented line in Insert mode from anywhere on the line.",
+  },
+  edit_append_adjacent = {
+    id = "edit_append_adjacent",
+    title = "Direct Append / Insert",
+    category = "editing",
+    level = 1,
+    shortcut = "a / i",
+    summary = "Use `a` instead of `li` (and `i` instead of `ha`) to enter Insert mode on the right side of the cursor.",
+  },
+  edit_delete_then_insert = {
+    id = "edit_delete_then_insert",
+    title = "Change Instead of Delete + Insert",
+    category = "editing",
+    level = 1,
+    shortcut = "c{motion} / cc / S / C",
+    summary = "Use the change operator (`c`) to delete and enter Insert mode atomically — making it dot-repeatable with `.`!",
+  },
+  edit_replace_char = {
+    id = "edit_replace_char",
+    title = "Replace Single Character",
+    category = "editing",
+    level = 1,
+    shortcut = "r<ch>",
+    summary = "Use `r<ch>` to replace a single character without ever leaving Normal mode.",
+  },
+  edit_substitute_char = {
+    id = "edit_substitute_char",
+    title = "Substitute Character",
+    category = "editing",
+    level = 2,
+    shortcut = "s / cl",
+    summary = "Use `s` to delete the character under cursor and enter Insert mode in one key instead of `xi`.",
+  },
+  edit_toggle_case = {
+    id = "edit_toggle_case",
+    title = "Toggle / Change Case",
+    category = "editing",
+    level = 2,
+    shortcut = "~ / gU / gu",
+    summary = "Use `~` to flip the case of a character instantly instead of deleting and retyping it.",
+  },
+  edit_increment_number = {
+    id = "edit_increment_number",
+    title = "Increment / Decrement Numbers",
+    category = "editing",
+    level = 3,
+    shortcut = "<C-a> / <C-x>",
+    summary = "Use `<C-a>` to increment or `<C-x>` to decrement the next number on the line in one keystroke.",
+  },
+  edit_indent = {
+    id = "edit_indent",
+    title = "Indent / Outdent Operators",
+    category = "editing",
+    level = 1,
+    shortcut = ">> / << / ==",
+    summary = "Use `>>`, `<<`, or `==` instead of manually typing or deleting leading spaces.",
+  },
+  edit_join_lines = {
+    id = "edit_join_lines",
+    title = "Join Lines",
+    category = "editing",
+    level = 1,
+    shortcut = "J / gJ",
+    summary = "Use `J` (with space) or `gJ` (without space) to join the next line onto the current line.",
+  },
+  edit_repeated_x = {
+    id = "edit_repeated_x",
+    title = "Delete by Motion Instead of Repeated x",
+    category = "editing",
+    level = 1,
+    shortcut = "dw / dt<ch> / D",
+    summary = "Delete spans with `d{motion}` instead of pressing `x` repeatedly.",
+  },
+
+  -- =========================================================================
+  -- REPETITION & SEARCH
+  -- =========================================================================
+  rep_dot = {
+    id = "rep_dot",
+    title = "Dot Repeat",
+    category = "repetition",
+    level = 1,
+    shortcut = ".",
+    summary = "Press `.` to replay your last complete edit at the new cursor position.",
+  },
+  rep_star_search = {
+    id = "rep_star_search",
+    title = "Search Word Under Cursor",
+    category = "repetition",
+    level = 1,
+    shortcut = "* / #",
+    summary = "Press `*` (forward) or `#` (backward) to search the word under the cursor without typing it into `/`.",
+  },
+  rep_cgn = {
+    id = "rep_cgn",
+    title = "Search & Dot-Repeat Replace",
+    category = "repetition",
+    level = 3,
+    shortcut = "* -> cgn...<Esc> -> .",
+    summary = "After searching with `*` or `/`, use `cgn` to change the match, then tap `.` to replace each next occurrence!",
+  },
+  rep_line_ops = {
+    id = "rep_line_ops",
+    title = "Counted Line Operations",
+    category = "repetition",
+    level = 1,
+    shortcut = "{N}dd / {N}yy / dip",
+    summary = "Prefix `dd` or `yy` with a count (or use `dip`/`yip`) instead of repeating them line by line.",
+  },
+
+  -- =========================================================================
+  -- INSERT MODE
+  -- =========================================================================
+  insert_ctrl_w = {
+    id = "insert_ctrl_w",
+    title = "Delete Word in Insert Mode",
+    category = "insert",
+    level = 1,
+    shortcut = "<C-w>",
+    summary = "Press `<C-w>` in Insert mode to delete the previous word instantly instead of mashing Backspace.",
+  },
+  insert_ctrl_u = {
+    id = "insert_ctrl_u",
+    title = "Clear Line in Insert Mode",
+    category = "insert",
+    level = 2,
+    shortcut = "<C-u>",
+    summary = "Press `<C-u>` in Insert mode to delete back to the start of the line in one keystroke.",
+  },
+  insert_arrows = {
+    id = "insert_arrows",
+    title = "Avoid Arrow Navigation in Insert Mode",
+    category = "insert",
+    level = 1,
+    shortcut = "<Esc> + motions",
+    summary = "Exit Insert mode and use fast Normal motions (`w`, `b`, `f`, `^`, `$`) instead of arrow keys.",
+  },
+}
+
+M.category_labels = {
+  text_objects = "Text Objects",
+  visual = "Visual Mode",
+  navigation = "Navigation",
+  editing = "Editing & Combos",
+  repetition = "Repetition & Search",
+  insert = "Insert Mode",
+}
+
+M.category_order = {
+  "text_objects",
+  "visual",
+  "navigation",
+  "editing",
+  "repetition",
+  "insert",
+}
+
+---Get rule metadata by ID.
+---@param id string
+---@return VimCoachRuleMeta|nil
+function M.get(id)
+  return M.rules[id]
+end
+
+return M
