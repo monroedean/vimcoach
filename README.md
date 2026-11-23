@@ -1,20 +1,18 @@
 # vimcoach
 
-A Vim motion coach for Neovim (and VS Code via `vscode-neovim`).
-
-`vimcoach` reads your actual buffer, visual selections, cursor jumps, and before/after edits to tell you the faster native Vim way to do what you just did.
+A Neovim plugin that watches how you edit and shows you shorter Vim motions for what you just did. Works in VS Code too, via `vscode-neovim`.
 
 ![vimcoach demo](assets/demo.gif)
 
-## What it catches
+`vimcoach` looks at your buffer, cursor jumps, and before/after edits rather than just counting repeated keys. It sticks to practical motions you'd actually use (won't nag `jjj` or suggest `4fe`), ignores pauses while you're reading, and tracks your habits in a dashboard.
 
-- **Visual mode & text objects** — stepping through quotes, brackets, HTML tags, words, or paragraphs (`vllllld` → `di"`, `vwwc` → `ci(`, `Vjjjd` → `di{`, `vi"d` → `di"`).
-- **Navigation** — walking to line start/end (`0`, `^`, `$`), matching brackets (`%`), characters (`f`/`t`/`;`), paragraphs (`}`/`{`), file bounds (`gg`/`G`), counted jumps (`6j`), half-page scrolls (`<C-d>`/`<C-u>`), and jump-back (`<C-o>`).
-- **Editing combos** — `d$` → `D`, `dw`+`i` → `cw`, `dd`+`O` → `cc`, `^i` → `I`, `$a` → `A`, `A<CR>` → `o`, case flips (`xiA<Esc>` → `~`), incrementing numbers (`ciw43` on `42` → `<C-a>`), manual indents (`>>`/`<<`), and line joins (`J`).
-- **Repetition & search** — repeating an edit manually → `.`, searching the word under cursor with `/` → `*`/`#`, and repeating search+change → `cgn` + `.`.
-- **Insert mode** — mashing `<BS>` → `<C-w>`/`<C-u>`, arrow keys in insert mode.
+A few things it catches:
 
-It skips niche Vim-golf tricks (won't nag `jjj` or suggest `4fe` / `12l`), ignores slow reading pauses, and tracks your habit mastery over time in a dashboard.
+- Text objects instead of visual stepping (`vllllld` → `di"`, `vwwc` → `ci(`, `vi"d` → `di"`)
+- Direct jumps instead of walking (`0`/`^`/`$`, `%`, `f`/`t`, `{`/`}`, `gg`/`G`, `<C-d>`/`<C-u>`, `<C-o>`)
+- Shorter editing combos (`d$` → `D`, `dw`+`i` → `cw`, `dd`+`O` → `cc`, `^i` → `I`, `A<CR>` → `o`, `~`, `<C-a>`, `J`)
+- Repetition and search (`.`, `*`/`#`, `cgn`)
+- Insert mode habits (mashing `<BS>` → `<C-w>`/`<C-u>`, arrow keys)
 
 ## Install
 
@@ -24,21 +22,21 @@ With `lazy.nvim`:
 return { "monroedean/vimcoach" }
 ```
 
-That's it.
-
-In VS Code, hints show up as a fading inline badge at the end of the line (hover for details) plus a brief status bar message.
+No `setup()` call needed unless you want to change the defaults. In VS Code, hints show up inline at the end of the line (hover for details) and briefly in the status bar.
 
 ## Commands
 
-- `:VimCoach` / `:VimCoachDashboard` — open the mastery dashboard
-- `:VimCoachToggle` — pause or resume
-- `:VimCoachStrict` — toggle strict blocking mode
-- `:VimCoach coach|strict|adaptive` — switch mode
-- `:VimCoach status` — quick fluency summary
-- `:VimCoach test` — fire a sample hint
-- `:VimCoachReset` — wipe saved stats
+| Command | Action |
+| --- | --- |
+| `:VimCoach` | Open the stats dashboard |
+| `:VimCoachToggle` | Pause or resume |
+| `:VimCoachStrict` | Toggle strict mode (blocks key spamming) |
+| `:VimCoach coach\|strict\|adaptive` | Switch mode |
+| `:VimCoach status` | Print a quick summary |
+| `:VimCoach test` | Trigger a sample hint |
+| `:VimCoachReset` | Clear saved stats |
 
-Statusline helper (e.g. `lualine.nvim`):
+Statusline helper (e.g. for `lualine.nvim`):
 
 ```lua
 function() return require("vimcoach").statusline() end
@@ -46,15 +44,13 @@ function() return require("vimcoach").statusline() end
 
 ## Config
 
-Only override what you need. Full defaults live in `lua/vimcoach/config.lua`:
+Defaults live in [lua/vimcoach/config.lua](lua/vimcoach/config.lua). Override only what you want:
 
 ```lua
 require("vimcoach").setup({
-  mode = "coach",
-  cooldown_ms = 0,
-  rule_cooldown_ms = 0,
+  mode = "coach",         -- "coach" | "strict" | "adaptive"
   practical_only = true,
-  disabled_rules = {}, -- e.g. { nav_vertical_count = true }
+  disabled_rules = {},    -- e.g. { nav_vertical_count = true }
   ui = {
     style = "float",        -- "float" | "notify" | "echo"
     position = "top_right", -- "top_right" | "bottom_right" | "cursor"
