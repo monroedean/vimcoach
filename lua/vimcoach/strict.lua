@@ -166,7 +166,7 @@ function M.disable()
       for _, m in ipairs({ "n", "x" }) do
         pcall(vim.keymap.del, m, key)
         local prev = saved_maps[m .. ":" .. key]
-        if prev and prev.rhs then
+        if prev and (prev.rhs or prev.callback) then
           pcall(vim.fn.mapset, m, false, prev)
         end
       end

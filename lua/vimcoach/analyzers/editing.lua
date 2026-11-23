@@ -268,7 +268,7 @@ function M.analyze_insert_leave(ctx)
       "edit_open_line",
       actual,
       "o",
-      #actual - 1,
+      #ik,
       94,
       "Press `o` to open a new indented line below in 1 key instead of `" .. actual .. "`."
     ))

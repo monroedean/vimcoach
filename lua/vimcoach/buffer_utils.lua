@@ -650,15 +650,13 @@ function M.best_char_find(line, start_col, end_col, practical_only)
         if count == 1 then
           local cmd = forward and "t" or "T"
           -- Prefer t<delimiter> over f<random_letter> when landing right before a delimiter
-          if not best then
-            best = {
-              motion = cmd .. adj_ch,
-              key_cost = 2,
-              kind = cmd,
-              char = adj_ch,
-              distinctive = true,
-            }
-          end
+          best = {
+            motion = cmd .. adj_ch,
+            key_cost = 2,
+            kind = cmd,
+            char = adj_ch,
+            distinctive = true,
+          }
         end
       end
     end

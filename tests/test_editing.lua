@@ -124,6 +124,7 @@ return function(t)
     t.ok(best ~= nil)
     t.eq(best.rule_id, "edit_open_line")
     t.eq(best.suggested, "o")
+    t.eq(best.keys_saved, 1)
   end)
 
   t.test("InsertLeave: manual indent I<Space><Space><Esc> -> >>", function()

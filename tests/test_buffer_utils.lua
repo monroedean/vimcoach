@@ -80,4 +80,12 @@ return function(t)
     local repeated = "eeeeeeeeeeee"
     t.eq(buf.best_char_find(repeated, 1, 6, true), nil)
   end)
+
+  t.test("best_char_find prefers t<delimiter> over f<letter> right before a delimiter", function()
+    local line = "local bar(baz)"
+    -- col 1 -> 'r' at col 9 (1st occurrence of 'r', directly before '(')
+    local cf = buf.best_char_find(line, 1, 9, true)
+    t.ok(cf ~= nil)
+    t.eq(cf.motion, "t(")
+  end)
 end

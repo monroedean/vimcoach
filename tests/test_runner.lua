@@ -43,6 +43,7 @@ local suites = {
   "test_navigation.lua",
   "test_editing.lua",
   "test_repetition.lua",
+  "test_strict.lua",
 }
 
 for _, file in ipairs(suites) do
