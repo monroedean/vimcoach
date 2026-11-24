@@ -1,0 +1,208 @@
+{
+  "name": "vimcoach",
+  "displayName": "VimCoach (for VSCodeVim)",
+  "description": "Real-time Vim motion coach for VSCodeVim — catches inefficient habits and shows shorter, practical Vim motions with inline hints and a Mastery Dashboard.",
+  "version": "0.1.0",
+  "publisher": "monroedean",
+  "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1e1e2e",
+    "theme": "dark"
+  },
+  "homepage": "https://github.com/monroedean/vimcoach#readme",
+  "bugs": {
+    "url": "https://github.com/monroedean/vimcoach/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/monroedean/vimcoach",
+    "directory": "vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Education",
+    "Keymaps",
+    "Other"
+  ],
+  "keywords": [
+    "vim",
+    "vscodevim",
+    "vimcoach",
+    "hardtime",
+    "motions",
+    "coach",
+    "trainer"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vimcoach.openDashboard",
+        "title": "VimCoach: Open Mastery Dashboard"
+      },
+      {
+        "command": "vimcoach.toggle",
+        "title": "VimCoach: Toggle Enable/Disable"
+      },
+      {
+        "command": "vimcoach.cycleMode",
+        "title": "VimCoach: Cycle Mode (Coach / Adaptive / Strict)"
+      },
+      {
+        "command": "vimcoach.setMode",
+        "title": "VimCoach: Set Mode"
+      },
+      {
+        "command": "vimcoach.status",
+        "title": "VimCoach: Show Status"
+      },
+      {
+        "command": "vimcoach.testHint",
+        "title": "VimCoach: Trigger Sample Hint"
+      },
+      {
+        "command": "vimcoach.resetStats",
+        "title": "VimCoach: Reset Stats"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vimcoach-sidebar",
+          "title": "VimCoach",
+          "icon": "$(mortar-board)"
+        }
+      ]
+    },
+    "views": {
+      "vimcoach-sidebar": [
+        {
+          "type": "webview",
+          "id": "vimcoach.dashboardView",
+          "name": "Mastery Dashboard"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "VimCoach",
+      "properties": {
+        "vimcoach.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or pause VimCoach motion coaching."
+        },
+        "vimcoach.mode": {
+          "type": "string",
+          "enum": [
+            "coach",
+            "adaptive",
+            "strict"
+          ],
+          "default": "coach",
+          "description": "Coaching mode: 'coach' shows hints only, 'adaptive' enables strict blocking only for habits you miss repeatedly, 'strict' blocks repeated hjkl spamming."
+        },
+        "vimcoach.adaptiveStrictMisses": {
+          "type": "number",
+          "default": 8,
+          "minimum": 1,
+          "description": "Number of misses on a movement habit before adaptive mode activates strict blocking."
+        },
+        "vimcoach.onlyWhenVSCodeVimActive": {
+          "type": "boolean",
+          "default": true,
+          "description": "Only coach when the VSCodeVim (vscodevim.vim) extension is installed and active (automatically avoids double-coaching if you use vscode-neovim instead)."
+        },
+        "vimcoach.practicalOnly": {
+          "type": "boolean",
+          "default": true,
+          "description": "Stick to practical Vim motions you'd actually use (avoids suggesting golfy counts like 4fe)."
+        },
+        "vimcoach.assumeNvimY": {
+          "type": "boolean",
+          "default": false,
+          "description": "Suggest Y instead of y$ for yanking to end of line (enable if you map Y to y$ in VSCodeVim)."
+        },
+        "vimcoach.style": {
+          "type": "string",
+          "enum": [
+            "inline_and_status",
+            "inline",
+            "status_bar",
+            "toast"
+          ],
+          "default": "inline_and_status",
+          "description": "How VimCoach displays hints inside VS Code."
+        },
+        "vimcoach.durationMs": {
+          "type": "number",
+          "default": 4500,
+          "minimum": 1000,
+          "maximum": 30000,
+          "description": "How long inline and status bar hints remain visible (milliseconds)."
+        },
+        "vimcoach.cooldownMs": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "description": "Minimum time (ms) between any two coaching hints."
+        },
+        "vimcoach.ruleCooldownMs": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "description": "Minimum time (ms) before showing the same coaching rule again."
+        },
+        "vimcoach.disabledRules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "List of rule IDs to disable (e.g. [\"nav_vertical_count\"])."
+        },
+        "vimcoach.disabledLanguages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "Log",
+            "output",
+            "scminput",
+            "git-commit"
+          ],
+          "description": "Language IDs where VimCoach should stay silent."
+        },
+        "vimcoach.strict.maxCount": {
+          "type": "number",
+          "default": 4,
+          "minimum": 2,
+          "description": "Maximum consecutive single-step h/j/k/l moves allowed in strict mode before blocking."
+        },
+        "vimcoach.strict.maxTimeMs": {
+          "type": "number",
+          "default": 1200,
+          "minimum": 200,
+          "description": "Time window (ms) for consecutive h/j/k/l presses in strict mode."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "npm run compile && node --test dist/test/*.test.js",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}

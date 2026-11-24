@@ -1,6 +1,6 @@
 # vimcoach
 
-A Neovim plugin that watches how you edit and shows you shorter Vim motions for what you just did. Works in VS Code too, via `vscode-neovim`.
+Watches how you edit and shows you shorter Vim motions for what you just did. Works in Neovim and VS Code (both `vscode-neovim` and `VSCodeVim`).
 
 ![vimcoach demo](assets/demo.gif)
 
@@ -16,13 +16,25 @@ A few things it catches:
 
 ## Install
 
+### Neovim & `vscode-neovim`
+
 With `lazy.nvim`:
 
 ```lua
 return { "monroedean/vimcoach" }
 ```
 
-No `setup()` call needed unless you want to change the defaults. In VS Code, hints show up inline at the end of the line (hover for details) and briefly in the status bar.
+No `setup()` call needed unless you want to change the defaults. In VS Code with `vscode-neovim`, hints show up inline at the end of the line (hover for details) and briefly in the status bar.
+
+### VS Code with `VSCodeVim`
+
+Because `VSCodeVim` doesn't load Lua plugins, there's a companion VS Code extension in [`vscode-extension/`](vscode-extension/README.md). Grab it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=monroedean.vimcoach) (or [Open VSX](https://open-vsx.org/extension/monroedean/vimcoach) for Cursor/VSCodium):
+
+```bash
+code --install-extension monroedean.vimcoach
+```
+
+It picks up `vscodevim.vim` automatically and stays quiet if you're using `vscode-neovim` instead. Hints show up inline and in the status bar, with a dashboard in the sidebar. If you'd rather install manually, grab the `.vsix` from [Releases](https://github.com/monroedean/vimcoach/releases) or build it from `vscode-extension/`.
 
 ## Commands
 
@@ -60,10 +72,4 @@ require("vimcoach").setup({
     style = "inline_and_status",
   },
 })
-```
-
-## Tests
-
-```bash
-nvim --headless -u tests/minimal_init.lua -l tests/test_runner.lua
 ```

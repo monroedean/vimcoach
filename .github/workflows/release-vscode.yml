@@ -1,0 +1,99 @@
+name: Release VS Code Extension
+
+on:
+  push:
+    tags:
+      - "vscode-v*"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish to VS Code Marketplace and Open VSX (requires secrets)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vscode-extension
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Verify tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/vscode-v')
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#vscode-v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "Error: tag version ($TAG_VERSION) does not match vscode-extension/package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Package VSIX
+        id: package
+        run: |
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          VSIX_NAME="vimcoach-${PKG_VERSION}.vsix"
+          npx --yes @vscode/vsce package --out "$VSIX_NAME"
+          echo "vsix_name=$VSIX_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.vsix_name }}
+          path: vscode-extension/${{ steps.package.outputs.vsix_name }}
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/vscode-v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VSIX_NAME: ${{ steps.package.outputs.vsix_name }}
+          VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$VSIX_NAME" \
+            --title "VimCoach for VSCodeVim v${VERSION}" \
+            --generate-notes
+
+      - name: Publish to VS Code Marketplace
+        if: startsWith(github.ref, 'refs/tags/vscode-v') || inputs.publish
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          VSIX_NAME: ${{ steps.package.outputs.vsix_name }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "VSCE_PAT secret not set; skipping VS Code Marketplace publish."
+            exit 0
+          fi
+          npx --yes @vscode/vsce publish --packagePath "$VSIX_NAME" -p "$VSCE_PAT"
+
+      - name: Publish to Open VSX
+        if: startsWith(github.ref, 'refs/tags/vscode-v') || inputs.publish
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+          VSIX_NAME: ${{ steps.package.outputs.vsix_name }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "OVSX_PAT secret not set; skipping Open VSX publish."
+            exit 0
+          fi
+          npx --yes ovsx publish "$VSIX_NAME" -p "$OVSX_PAT"
