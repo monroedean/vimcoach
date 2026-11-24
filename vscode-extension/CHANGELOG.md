@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 (2026-11-23)
+
+- Update extension description.
+
 ## 0.1.0 (2026-11-23)
 
 - Initial release for `VSCodeVim` (`vscodevim.vim`).

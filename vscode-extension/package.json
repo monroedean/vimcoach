@@ -1,8 +1,8 @@
 {
   "name": "vimcoach",
   "displayName": "VimCoach (for VSCodeVim)",
-  "description": "Real-time Vim motion coach for VSCodeVim — catches inefficient habits and shows shorter, practical Vim motions with inline hints and a Mastery Dashboard.",
-  "version": "0.1.0",
+  "description": "Watches how you edit in VSCodeVim and shows you shorter Vim motions for what you just did.",
+  "version": "0.1.1",
   "publisher": "monroedean",
   "license": "MIT",
   "icon": "icon.png",
