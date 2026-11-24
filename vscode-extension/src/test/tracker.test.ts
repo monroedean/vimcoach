@@ -1,7 +1,12 @@
 import { describe, it } from "node:test";
 import * as assert from "node:assert/strict";
 import { MasteryStore } from "../mastery";
-import { CursorStyle, SelectionLike } from "../modeDetector";
+import {
+  CursorStyle,
+  getEnvironmentNotice,
+  resolveVimEnvironment,
+  SelectionLike,
+} from "../modeDetector";
 import { Pos0, VSCodeVimTracker } from "../tracker";
 import { Candidate, CoachConfig, createConfig } from "../types";
 
@@ -379,5 +384,26 @@ describe("VSCodeVimTracker end-to-end event simulations", () => {
     assert.equal(h.reverted[0].line, 4);
     assert.equal(h.hints.length, 1);
     assert.equal(h.hints[0].isStrictBlock, true);
+  });
+});
+
+describe("Vim environment detection", () => {
+  it("resolves installed extension combinations cleanly", () => {
+    assert.equal(resolveVimEnvironment(true, false), "vscodevim");
+    assert.equal(resolveVimEnvironment(true, true), "vscodevim");
+    assert.equal(resolveVimEnvironment(false, true), "vscode-neovim");
+    assert.equal(resolveVimEnvironment(false, false), "none");
+  });
+
+  it("returns the right dashboard notice for each environment", () => {
+    assert.equal(getEnvironmentNotice("vscodevim"), null);
+
+    const missingNotice = getEnvironmentNotice("none");
+    assert.ok(missingNotice);
+    assert.equal(missingNotice.actionType, "installVSCodeVim");
+
+    const neovimNotice = getEnvironmentNotice("vscode-neovim");
+    assert.ok(neovimNotice);
+    assert.equal(neovimNotice.actionType, "openNeovimDocs");
   });
 });

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 (2026-11-23)
+
+- Prompt to install `VSCodeVim` if neither `VSCodeVim` nor `vscode-neovim` is installed.
+- Show a setup banner in the sidebar dashboard when `VSCodeVim` is missing or `vscode-neovim` is detected.
+
 ## 0.1.1 (2026-11-23)
 
 - Update extension description.

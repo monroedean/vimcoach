@@ -6,17 +6,28 @@ import { MasteryStore } from "./mastery";
 import {
   DEFAULT_VIM_CURSOR_STYLES,
   parseCursorStyleName,
+  resolveVimEnvironment,
   SelectionLike,
   VimCursorStyleConfig,
+  VimEnvironment,
 } from "./modeDetector";
 import { Pos0, VSCodeVimTracker } from "./tracker";
 import { CoachConfig, CoachMode, createConfig, HintStyle } from "./types";
 
 const VSCODE_VIM_EXTENSION_ID = "vscodevim.vim";
+const VSCODE_NEOVIM_EXTENSION_ID = "asvetliakov.vscode-neovim";
+const DISMISS_INSTALL_PROMPT_KEY = "vimcoach.dismissedInstallPrompt";
 
 function isVSCodeVimActive(): boolean {
   const ext = vscode.extensions.getExtension(VSCODE_VIM_EXTENSION_ID);
   return !!ext && ext.isActive;
+}
+
+function getVimEnvironment(): VimEnvironment {
+  return resolveVimEnvironment(
+    !!vscode.extensions.getExtension(VSCODE_VIM_EXTENSION_ID),
+    !!vscode.extensions.getExtension(VSCODE_NEOVIM_EXTENSION_ID)
+  );
 }
 
 function readConfig(): CoachConfig {
@@ -141,7 +152,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const refreshUI = (): void => {
     const summary = mastery.getSummary();
-    hud.updateIdleStatus(summary, isVSCodeVimActive());
+    const env = getVimEnvironment();
+    hud.updateIdleStatus(summary, isVSCodeVimActive(), env);
+    dashboard.updateEnvironment(config.onlyWhenVSCodeVimActive ? env : "vscodevim");
     dashboard.updateStats(summary);
   };
 
@@ -181,7 +194,35 @@ export function activate(context: vscode.ExtensionContext): void {
     void vscode.window.showInformationMessage("VimCoach stats reset.");
   };
 
-  const dashboard = new VimCoachDashboardProvider(cycleMode, toggleEnabled, resetStats);
+  const installVSCodeVim = async (): Promise<void> => {
+    await vscode.commands.executeCommand(
+      "workbench.extensions.installExtension",
+      VSCODE_VIM_EXTENSION_ID
+    );
+    const vimExt = vscode.extensions.getExtension(VSCODE_VIM_EXTENSION_ID);
+    if (vimExt && !vimExt.isActive) {
+      try {
+        await vimExt.activate();
+      } catch {
+        // Ignore activation errors; onDidChange will refresh state
+      }
+    }
+    refreshUI();
+  };
+
+  const openNeovimDocs = async (): Promise<void> => {
+    await vscode.env.openExternal(
+      vscode.Uri.parse("https://github.com/monroedean/vimcoach#neovim--vscode-neovim")
+    );
+  };
+
+  const dashboard = new VimCoachDashboardProvider(
+    cycleMode,
+    toggleEnabled,
+    resetStats,
+    () => void installVSCodeVim(),
+    () => void openNeovimDocs()
+  );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       VimCoachDashboardProvider.viewType,
@@ -237,6 +278,24 @@ export function activate(context: vscode.ExtensionContext): void {
       () => refreshUI(),
       () => refreshUI()
     );
+  } else if (
+    config.onlyWhenVSCodeVimActive &&
+    getVimEnvironment() === "none" &&
+    !context.globalState.get<boolean>(DISMISS_INSTALL_PROMPT_KEY)
+  ) {
+    void vscode.window
+      .showInformationMessage(
+        "VimCoach needs VSCodeVim to track your Vim motions.",
+        "Install VSCodeVim",
+        "Don't Show Again"
+      )
+      .then((choice) => {
+        if (choice === "Install VSCodeVim") {
+          void installVSCodeVim();
+        } else if (choice === "Don't Show Again") {
+          void context.globalState.update(DISMISS_INSTALL_PROMPT_KEY, true);
+        }
+      });
   }
 
   context.subscriptions.push(
@@ -335,7 +394,15 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
 
     vscode.extensions.onDidChange(() => {
-      refreshUI();
+      const ext = vscode.extensions.getExtension(VSCODE_VIM_EXTENSION_ID);
+      if (ext && !ext.isActive) {
+        void Promise.resolve(ext.activate()).then(
+          () => refreshUI(),
+          () => refreshUI()
+        );
+      } else {
+        refreshUI();
+      }
     }),
 
     vscode.commands.registerCommand("vimcoach.openDashboard", () => {

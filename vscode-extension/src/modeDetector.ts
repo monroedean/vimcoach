@@ -100,6 +100,48 @@ export function isFullLineSelection(
   return endLineLen > 0 && eChar >= endLineLen;
 }
 
+export type VimEnvironment = "vscodevim" | "vscode-neovim" | "none";
+
+export interface EnvironmentNotice {
+  title: string;
+  body: string;
+  actionLabel: string;
+  actionType: "installVSCodeVim" | "openNeovimDocs";
+}
+
+export function resolveVimEnvironment(
+  hasVSCodeVim: boolean,
+  hasVSCodeNeovim: boolean
+): VimEnvironment {
+  if (hasVSCodeVim) {
+    return "vscodevim";
+  }
+  if (hasVSCodeNeovim) {
+    return "vscode-neovim";
+  }
+  return "none";
+}
+
+export function getEnvironmentNotice(env: VimEnvironment): EnvironmentNotice | null {
+  if (env === "none") {
+    return {
+      title: "VSCodeVim required",
+      body: "Install VSCodeVim (vscodevim.vim) so VimCoach can track your motions.",
+      actionLabel: "Install VSCodeVim",
+      actionType: "installVSCodeVim",
+    };
+  }
+  if (env === "vscode-neovim") {
+    return {
+      title: "Using vscode-neovim",
+      body: "This extension is for VSCodeVim. For vscode-neovim, install the Neovim plugin (monroedean/vimcoach) instead.",
+      actionLabel: "View Neovim Setup",
+      actionType: "openNeovimDocs",
+    };
+  }
+  return null;
+}
+
 export function detectVimMode(
   cursorStyle: number | undefined,
   selection: SelectionLike,

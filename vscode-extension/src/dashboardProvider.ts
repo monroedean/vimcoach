@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { getEnvironmentNotice, VimEnvironment } from "./modeDetector";
 import { HintPayload, StatsSummary } from "./types";
 
 function escapeHtml(text: string): string {
@@ -16,11 +17,14 @@ export class VimCoachDashboardProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView;
   private latestSummary?: StatsSummary;
   private latestHint?: HintPayload;
+  private vimEnv: VimEnvironment = "vscodevim";
 
   constructor(
     private readonly onCycleMode: () => void,
     private readonly onToggleEnabled: () => void,
-    private readonly onResetStats: () => void
+    private readonly onResetStats: () => void,
+    private readonly onInstallVSCodeVim: () => void,
+    private readonly onOpenNeovimDocs: () => void
   ) {}
 
   public resolveWebviewView(webviewView: vscode.WebviewView): void {
@@ -36,6 +40,10 @@ export class VimCoachDashboardProvider implements vscode.WebviewViewProvider {
         this.onToggleEnabled();
       } else if (msg?.type === "resetStats") {
         this.onResetStats();
+      } else if (msg?.type === "installVSCodeVim") {
+        this.onInstallVSCodeVim();
+      } else if (msg?.type === "openNeovimDocs") {
+        this.onOpenNeovimDocs();
       }
     });
 
@@ -49,6 +57,11 @@ export class VimCoachDashboardProvider implements vscode.WebviewViewProvider {
 
   public updateStats(summary: StatsSummary): void {
     this.latestSummary = summary;
+    this.render();
+  }
+
+  public updateEnvironment(env: VimEnvironment): void {
+    this.vimEnv = env;
     this.render();
   }
 
@@ -71,6 +84,17 @@ export class VimCoachDashboardProvider implements vscode.WebviewViewProvider {
     const rawMode = enabled ? (s?.mode ?? "coach") : "paused";
     const modeLabel = enabled ? `Mode: ${rawMode.toUpperCase()}` : "PAUSED";
     const modeClass = `mode-${rawMode}`;
+
+    const notice = getEnvironmentNotice(this.vimEnv);
+    const noticeHtml = notice
+      ? `
+      <section class="card notice">
+        <div class="notice-title">${escapeHtml(notice.title)}</div>
+        <p class="reason">${escapeHtml(notice.body)}</p>
+        <button id="envActionBtn" class="primary-btn" type="button" data-action="${notice.actionType}">${escapeHtml(notice.actionLabel)}</button>
+      </section>
+      `
+      : "";
 
     const latestHintHtml = this.latestHint
       ? `
@@ -229,6 +253,24 @@ export class VimCoachDashboardProvider implements vscode.WebviewViewProvider {
     .card.highlight {
       border-color: var(--vscode-focusBorder);
     }
+    .card.notice {
+      border-color: rgba(242, 204, 96, 0.5);
+    }
+    .notice-title {
+      font-weight: 700;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+    .primary-btn {
+      width: 100%;
+      margin-top: 8px;
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border-color: transparent;
+    }
+    .primary-btn:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
     .card-header {
       display: flex;
       justify-content: space-between;
@@ -374,6 +416,8 @@ export class VimCoachDashboardProvider implements vscode.WebviewViewProvider {
     <button id="resetBtn" type="button">Reset</button>
   </div>
 
+  ${noticeHtml}
+
   ${latestHintHtml}
 
   <section class="card">
@@ -402,6 +446,13 @@ export class VimCoachDashboardProvider implements vscode.WebviewViewProvider {
     });
     document.getElementById("resetBtn")?.addEventListener("click", () => {
       vscode.postMessage({ type: "resetStats" });
+    });
+    const envBtn = document.getElementById("envActionBtn");
+    envBtn?.addEventListener("click", () => {
+      const action = envBtn.getAttribute("data-action");
+      if (action) {
+        vscode.postMessage({ type: action });
+      }
     });
   </script>
 </body>

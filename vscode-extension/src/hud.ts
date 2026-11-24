@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { getRuleMeta } from "./catalog";
+import { VimEnvironment } from "./modeDetector";
 import { Candidate, CoachConfig, HintPayload, StatsSummary } from "./types";
 
 export class VimCoachHud {
@@ -17,13 +18,33 @@ export class VimCoachHud {
     this.statusBarItem.show();
   }
 
-  public updateIdleStatus(summary: StatsSummary, vscodeVimActive: boolean): void {
+  public updateIdleStatus(
+    summary: StatsSummary,
+    vscodeVimActive: boolean,
+    vimEnv: VimEnvironment = vscodeVimActive ? "vscodevim" : "none"
+  ): void {
     const cfg = this.getConfig();
     if (!cfg.enabled) {
       this.statusBarItem.text = "$(mortar-board) VimCoach (Paused)";
       this.statusBarItem.backgroundColor = undefined;
       this.statusBarItem.tooltip = "VimCoach is paused. Click to open the Mastery Dashboard.";
       return;
+    }
+
+    if (cfg.onlyWhenVSCodeVimActive && !vscodeVimActive) {
+      if (vimEnv === "none") {
+        this.statusBarItem.text = "$(mortar-board) VimCoach (install VSCodeVim)";
+        this.statusBarItem.backgroundColor = undefined;
+        this.statusBarItem.tooltip = "VSCodeVim isn't installed yet. Click to open VimCoach.";
+        return;
+      }
+      if (vimEnv === "vscode-neovim") {
+        this.statusBarItem.text = "$(mortar-board) VimCoach (vscode-neovim)";
+        this.statusBarItem.backgroundColor = undefined;
+        this.statusBarItem.tooltip =
+          "This extension is for VSCodeVim. For vscode-neovim, use the Neovim plugin (monroedean/vimcoach).";
+        return;
+      }
     }
 
     const modeTag =
