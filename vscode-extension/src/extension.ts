@@ -212,7 +212,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const openNeovimDocs = async (): Promise<void> => {
     await vscode.env.openExternal(
-      vscode.Uri.parse("https://github.com/monroedean/vimcoach#neovim--vscode-neovim")
+      vscode.Uri.parse("https://github.com/monroedean/vimcoach#vs-code-with-vscode-neovim")
     );
   };
 

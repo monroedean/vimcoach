@@ -16,7 +16,7 @@ A few things it catches:
 
 ## Install
 
-### Neovim & `vscode-neovim`
+### Neovim
 
 With `lazy.nvim`:
 
@@ -24,17 +24,23 @@ With `lazy.nvim`:
 return { "monroedean/vimcoach" }
 ```
 
-No `setup()` call needed unless you want to change the defaults. In VS Code with `vscode-neovim`, hints show up inline at the end of the line (hover for details) and briefly in the status bar.
+No `setup()` call needed unless you want to change the defaults.
+
+### VS Code with `vscode-neovim`
+
+Requires the [VSCode Neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim) (`asvetliakov.vscode-neovim`) extension. Install the Neovim plugin above in your Neovim config (you don't need the VS Code extension below). Hints show up inline at the end of the line (hover for details) and briefly in the status bar.
 
 ### VS Code with `VSCodeVim`
 
-Because `VSCodeVim` doesn't load Lua plugins, there's a companion VS Code extension in [`vscode-extension/`](vscode-extension/README.md). Grab it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=monroedean.vimcoach) (or [Open VSX](https://open-vsx.org/extension/monroedean/vimcoach) for Cursor/VSCodium):
+Requires the [VSCodeVim](https://marketplace.visualstudio.com/items?itemName=vscodevim.vim) (`vscodevim.vim`) extension.
+
+Install `vimcoach` from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=monroedean.vimcoach) (or [Open VSX](https://open-vsx.org/extension/monroedean/vimcoach) for Cursor/VSCodium), or run:
 
 ```bash
 code --install-extension monroedean.vimcoach
 ```
 
-It picks up `vscodevim.vim` automatically and stays quiet if you're using `vscode-neovim` instead. Hints show up inline and in the status bar, with a dashboard in the sidebar. If you'd rather install manually, grab the `.vsix` from [Releases](https://github.com/monroedean/vimcoach/releases) or build it from `vscode-extension/`.
+You can also grab a `.vsix` from [Releases](https://github.com/monroedean/vimcoach/releases) or see [vscode-extension/](vscode-extension/README.md) for details.
 
 ## Commands
 

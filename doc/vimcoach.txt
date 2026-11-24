@@ -1,4 +1,4 @@
-*vimcoach.txt*  Buffer-aware Vim motion & editing coach for Neovim + vscode-neovim
+*vimcoach.txt*  Real-time Vim motion coach for Neovim and vscode-neovim
 
 ==============================================================================
 CONTENTS                                                   *vimcoach-contents*
@@ -13,39 +13,39 @@ CONTENTS                                                   *vimcoach-contents*
 ==============================================================================
 1. INTRODUCTION                                               *vimcoach-intro*
 
-VimCoach is a buffer-aware, history-aware coaching engine for Neovim (and
-VS Code via `vscode-neovim`). Unlike regex-only keystream blockers, VimCoach
-inspects your actual buffer text, visual selection boundaries, navigation
-trajectories, and before/after edit diffs to surface the fastest practical
-native Vim idiom every time you take a slower route.
+vimcoach watches how you edit in Neovim (and VS Code via `vscode-neovim`) and
+shows you shorter Vim motions for what you just did. It looks at your buffer,
+cursor jumps, and before/after edits rather than just counting repeated keys,
+and sticks to practical motions you'd actually use.
 
 ==============================================================================
 2. COMMANDS                                                *vimcoach-commands*
 
                                                                    *:VimCoach*
 :VimCoach [subcommand]
-    Control VimCoach. Subcommands:
-      dashboard  Open the interactive Mastery Dashboard (default)
-      toggle     Toggle coaching on/off
+    Control vimcoach. Subcommands:
+      dashboard  Open the stats dashboard (default)
+      toggle     Pause or resume
       enable     Enable coaching
       disable    Pause coaching
-      coach      Switch to non-blocking Coach mode
-      strict     Switch to Strict blocking mode
+      coach      Switch to Coach mode (hints only)
+      strict     Switch to Strict mode (blocks key spamming)
       adaptive   Switch to Adaptive mode (blocks after repeated misses)
-      status     Display fluency & session summary
-      reset      Reset all persisted mastery statistics
+      status     Print a quick summary
+      test       Trigger a sample hint
+      reset      Clear saved stats
 
 :VimCoachDashboard                                        *:VimCoachDashboard*
-    Open the interactive Mastery Dashboard.
+    Open the stats dashboard.
 
 :VimCoachToggle                                              *:VimCoachToggle*
-    Toggle VimCoach on or off.
+    Pause or resume vimcoach.
 
 :VimCoachStrict                                              *:VimCoachStrict*
-    Toggle Strict mode on or off.
+    Toggle strict mode on or off.
 
 :VimCoachReset                                                *:VimCoachReset*
-    Reset persisted mastery and habit statistics.
+    Clear saved stats.
 
 ==============================================================================
 3. CONFIGURATION                                             *vimcoach-config*
@@ -59,7 +59,7 @@ Call `require("vimcoach").setup(opts)` in your Neovim config: >lua
     rule_cooldown_ms = 0,
     practical_only = true,
     ui = {
-      style = "float",       -- "float" | "notify" | "echo"
+      style = "float",        -- "float" | "notify" | "echo"
       position = "top_right", -- "top_right" | "bottom_right" | "cursor"
       duration_ms = 4500,
     },
@@ -69,19 +69,18 @@ Call `require("vimcoach").setup(opts)` in your Neovim config: >lua
 ==============================================================================
 4. COACHING MODES                                             *vimcoach-modes*
 
-- `coach` (default): Non-blocking floating coaching hints + mastery tracking.
-- `strict`: Blocks repeated restricted keys (`h`/`j`/`k`/`l`/arrows past
-  threshold) while still displaying buffer-aware optimal motion hints.
-- `adaptive`: Starts as non-blocking hints; automatically enables blocking
-  for a restricted habit once missed `adaptive_strict_misses` times.
+- `coach` (default): Shows hints without blocking keys.
+- `strict`: Blocks repeated `h`/`j`/`k`/`l` or arrow presses past the
+  threshold while still showing hints.
+- `adaptive`: Starts with hints only, then enables blocking for a habit once
+  you miss it `adaptive_strict_misses` times.
 
 ==============================================================================
 5. VS CODE (VSCODE-NEOVIM)                                   *vimcoach-vscode*
 
 When running inside VS Code via `vscode-neovim` (`vim.g.vscode ~= nil`),
-VimCoach automatically displays hints as a fading inline pill badge at the
-end of the active line (with full explanation on hover) plus a brief status
-bar message. Configure `vscode.style` (`"inline"`, `"inline_and_status"`,
+hints show up inline at the end of the line (hover for details) and briefly
+in the status bar. Configure `vscode.style` (`"inline"`, `"inline_and_status"`,
 `"status_bar"`, or `"toast"`).
 
 ==============================================================================
