@@ -483,7 +483,6 @@ export class VSCodeVimTracker {
     }
     this.mastery.recordMiss(best);
     this.host.onHint(best);
-    this.host.onStatsUpdated();
     return best;
   }
 

@@ -8,6 +8,11 @@ export class VimCoachHud {
   private statusResetTimer: ReturnType<typeof setTimeout> | null = null;
   private inlineDecoration: vscode.TextEditorDecorationType | null = null;
   private inlineTimer: ReturnType<typeof setTimeout> | null = null;
+  private latestIdleState: {
+    summary: StatsSummary;
+    vscodeVimActive: boolean;
+    vimEnv: VimEnvironment;
+  } | null = null;
 
   constructor(private readonly getConfig: () => CoachConfig) {
     this.statusBarItem = vscode.window.createStatusBarItem(
@@ -22,6 +27,31 @@ export class VimCoachHud {
     summary: StatsSummary,
     vscodeVimActive: boolean,
     vimEnv: VimEnvironment = vscodeVimActive ? "vscodevim" : "none"
+  ): void {
+    this.latestIdleState = { summary, vscodeVimActive, vimEnv };
+    const cfg = this.getConfig();
+
+    if (!cfg.enabled) {
+      if (this.statusResetTimer) {
+        clearTimeout(this.statusResetTimer);
+        this.statusResetTimer = null;
+      }
+      this.renderIdleStatus(summary, vscodeVimActive, vimEnv);
+      return;
+    }
+
+    // Keep the active status bar hint visible until its timer restores the latest idle state.
+    if (this.statusResetTimer) {
+      return;
+    }
+
+    this.renderIdleStatus(summary, vscodeVimActive, vimEnv);
+  }
+
+  private renderIdleStatus(
+    summary: StatsSummary,
+    vscodeVimActive: boolean,
+    vimEnv: VimEnvironment
   ): void {
     const cfg = this.getConfig();
     if (!cfg.enabled) {
@@ -65,7 +95,13 @@ export class VimCoachHud {
     );
   }
 
-  public showHint(candidate: Candidate, summary: StatsSummary, vscodeVimActive: boolean): HintPayload {
+  public showHint(
+    candidate: Candidate,
+    summary: StatsSummary,
+    vscodeVimActive: boolean,
+    vimEnv: VimEnvironment = vscodeVimActive ? "vscodevim" : "none"
+  ): HintPayload {
+    this.latestIdleState = { summary, vscodeVimActive, vimEnv };
     const cfg = this.getConfig();
     const meta = getRuleMeta(candidate.ruleId);
     const title = meta?.title ?? "Vim Tip";
@@ -118,8 +154,16 @@ export class VimCoachHud {
       }
       this.statusResetTimer = setTimeout(() => {
         this.statusResetTimer = null;
-        this.updateIdleStatus(summary, vscodeVimActive);
+        if (this.latestIdleState) {
+          this.renderIdleStatus(
+            this.latestIdleState.summary,
+            this.latestIdleState.vscodeVimActive,
+            this.latestIdleState.vimEnv
+          );
+        }
       }, durationMs);
+    } else if (!this.statusResetTimer) {
+      this.renderIdleStatus(summary, vscodeVimActive, vimEnv);
     }
 
     if (style === "toast") {

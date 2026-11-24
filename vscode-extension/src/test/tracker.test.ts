@@ -29,6 +29,7 @@ function createHarness(overrides?: Partial<CoachConfig>) {
   const cfg = createConfig(overrides);
   const hints: Candidate[] = [];
   const reverted: Pos0[] = [];
+  let statsUpdates = 0;
   const mastery = new MasteryStore(null, () => cfg, () => clock);
 
   const tracker = new VSCodeVimTracker(
@@ -38,7 +39,9 @@ function createHarness(overrides?: Partial<CoachConfig>) {
       onHint(c) {
         hints.push(c);
       },
-      onStatsUpdated() {},
+      onStatsUpdated() {
+        statsUpdates += 1;
+      },
       revertCursor(_docId, pos) {
         reverted.push(pos);
       },
@@ -55,6 +58,7 @@ function createHarness(overrides?: Partial<CoachConfig>) {
     mastery,
     hints,
     reverted,
+    getStatsUpdates: () => statsUpdates,
     tick(ms: number) {
       clock += ms;
     },
@@ -124,6 +128,7 @@ describe("VSCodeVimTracker end-to-end event simulations", () => {
     assert.equal(h.hints.length, 1);
     assert.equal(h.hints[0].ruleId, "nav_paragraph");
     assert.equal(h.hints[0].suggested, "}");
+    assert.equal(h.getStatsUpdates(), 0);
   });
 
   it("ignores mouse clicks completely", () => {

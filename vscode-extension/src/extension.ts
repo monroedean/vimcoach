@@ -236,7 +236,7 @@ export function activate(context: vscode.ExtensionContext): void {
     {
       onHint(candidate) {
         const summary = mastery.getSummary();
-        const payload = hud.showHint(candidate, summary, isVSCodeVimActive());
+        const payload = hud.showHint(candidate, summary, isVSCodeVimActive(), getVimEnvironment());
         dashboard.updateHint(payload);
         dashboard.updateStats(summary);
       },
@@ -450,7 +450,8 @@ export function activate(context: vscode.ExtensionContext): void {
           reason: "Test hint from VimCoach — your VSCodeVim HUD is working!",
         },
         summary,
-        isVSCodeVimActive()
+        isVSCodeVimActive(),
+        getVimEnvironment()
       );
       dashboard.updateHint(payload);
     }),
